@@ -8,6 +8,7 @@ import EditDataDialog from "./dialogs/EditDataDialog";
 import MoveSelectedDialog from "./dialogs/MoveSelectedDialog";
 import DeleteSelectedDialog from "./dialogs/DeleteSelectedDialog";
 import CreateTagDialog from "./dialogs/CreateTagDialog";
+import DeleteUnusedTagDialog from "./dialogs/DeleteUnusedTagDialog";
 
 export default function LeftPaneDialogs({ logic }) {
   return (
@@ -49,6 +50,17 @@ export default function LeftPaneDialogs({ logic }) {
           initialTag={logic.editingTag}   // ← 編集対象
           onSubmit={logic.updateTag}  // ロジックへ委譲
           onClose={() => logic.setShowEditTagDialog(false)}
+        />
+      )}
+
+      {/* ▼ 未使用タグ削除 */}
+      {logic.showDeleteUnusedTagDialog && (
+        <DeleteUnusedTagDialog
+          unusedTags={logic.unusedTags}
+          selectedUnusedTagIds={logic.selectedUnusedTagIds}
+          toggleUnusedTagSelection={logic.toggleUnusedTagSelection}
+          onSubmit={logic.handleDeleteUnusedTagsOk}
+          onClose={() => logic.setShowDeleteUnusedTagDialog(false)}
         />
       )}
     </>

@@ -14,8 +14,9 @@ export default function EditDataDialog({ logic }) {
       <div className="modal-content">
 
         {/* 名前 */}
-          <label>名前　　：</label>
+          <label htmlFor="edit-name">名前　　：</label>
           <input
+            id="edit-name"
             value={logic.editName}
             onChange={(e) => logic.setEditName(e.target.value)}
             maxLength={50}
@@ -24,8 +25,9 @@ export default function EditDataDialog({ logic }) {
         <br/>
 
         {/* 登録日 */}
-          <label>登録日　：</label>
+          <label htmlFor="edit-date">登録日　：</label>
           <input
+            id="edit-date"
             type="date"
             value={logic.editDate}
             onChange={(e) => logic.setEditDate(e.target.value)}
@@ -34,9 +36,9 @@ export default function EditDataDialog({ logic }) {
         <br/>
 
         {/* コメント */}
-        
-          <label>コメント：</label>
+          <label htmlFor="edit-comment">コメント：</label>
           <input
+            id="edit-comment"
             value={logic.editComment}
             onChange={(e) => logic.setEditComment(e.target.value)}
             maxLength={100}
@@ -84,6 +86,7 @@ export default function EditDataDialog({ logic }) {
 
           {/* タグ検索 */}
           <input
+            id="tag-filter"
             value={logic.tagFilter}
             onChange={(e) => logic.setTagFilter(e.target.value)}
             placeholder="タグ検索（部分一致）"
@@ -124,6 +127,13 @@ export default function EditDataDialog({ logic }) {
             onClick={() => logic.setShowCreateTagDialog(true)}
           >
             ＋タグ作成
+          </button>
+
+          <button
+            className="tag-create-btn"
+            onClick={() => logic.openDeleteUnusedTagDialog(true)}
+          >
+            未使用タグ削除
           </button>
         </div>
 

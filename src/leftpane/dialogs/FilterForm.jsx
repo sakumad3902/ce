@@ -39,7 +39,7 @@ export function FilterForm({ fields, logic }) {
                 onChange={(e) => f.onChangeFrom(e.target.value)}
                 className="date-input"
               />
-              <label>～</label>
+              <span>～</span>
               <input
                 type="date"
                 value={f.to}

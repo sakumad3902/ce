@@ -50,9 +50,10 @@ from routes.evaluate_series import evaluate_series
 from routes.get_series_with_creator import handle_get_series_with_creator
 from routes.series_update_tags import handle_series_update_tags
 
+from routes.tag_list import handle_tag_list
 from routes.tag_create import handle_tag_create
 from routes.tag_update import handle_tag_update
-from routes.tag_list import handle_tag_list
+from routes.tag_list_unused import handle_tag_list_unused
 from routes.tag_delete import handle_tag_delete
 
 # 認証系
@@ -236,20 +237,22 @@ def dispatch_cmd(cmd, req):
     elif cmd == "delete_project":
         return run_series_route(req, handle_delete_project)
 
-
     elif cmd == "projects":
         return run_series_route(req, handle_load_projects)
 
     # Tag
+    elif cmd == "tag_list":
+        return run_tag_route(req, handle_tag_list)
+    
     elif cmd == "tag_create":
         return run_tag_route(req, handle_tag_create)
 
     elif cmd == "tag_update":
         return run_tag_route(req, handle_tag_update)
 
-    elif cmd == "tag_list":
-        return run_tag_route(req, handle_tag_list)
-    
+    elif cmd == "tag_list_unused":
+        return run_tag_route(req, handle_tag_list_unused)
+
     elif cmd == "tag_delete":
         return run_tag_route(req, handle_tag_delete)    
 

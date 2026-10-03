@@ -69,6 +69,7 @@ const api = {
   fetchTags: () => get("tags"),
   createTag: (name, normalized_name) => post("tag_create", { name, normalized_name, user_id: localStorage.getItem("user_id") }),
   updateTag: (tag_id, name, normalized_name) => post("tag_update", { tag_id, name, normalized_name, user_id: localStorage.getItem("user_id") }),
+  fetchUnusedTags: () => get("tags_unused"),
   deleteTags: (tagIds) => post("tag_delete", { tag_ids: tagIds, user_id: localStorage.getItem("user_id") }),
 
   updateSeriesTags: ({ series_id, tagIds }) => {
@@ -305,6 +306,7 @@ export default function useApi(state) {
 
     fetchTags: api.fetchTags,
     createTag: api.createTag,
+    fetchUnusedTags: api.fetchUnusedTags,
     updateTag: api.updateTag,
     deleteTags: api.deleteTags,
 

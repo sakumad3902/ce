@@ -129,6 +129,12 @@ app.post("/tag_update", async (req, res) => {
   res.json(await callZmq("tag_update", { tag_id, name, normalized_name, user_id }));
 });
 
+app.get("/tags_unused", async (req, res) => {
+  const reply = await callZmq("tag_list_unused", {});
+  if (reply.status !== "OK") return res.json([]);
+  res.json(reply.tags);
+});
+
 app.post("/tag_delete", async (req, res) => {
   const { tag_ids, user_id } = req.body;
   // tag_ids は配列である必要がある

@@ -18,11 +18,14 @@ export function useLeftPaneUIState() {
   const [tagValueLocal, setTagValueLocal] = useState("");
   const [tagSuggestions, setTagSuggestions] = useState([]);
 
-  /* ▼ タグ作成ダイアログ（追加） */
+  /* ▼ タグ作成、編集、削除ダイアログ */
   const [showCreateTagDialog, setShowCreateTagDialog] = useState(false);
   const [showEditTagDialog, setShowEditTagDialog] = useState(false);
   const [editingTag, setEditingTag] = useState(null);
-
+  const [showDeleteUnusedTagDialog, setShowDeleteUnusedTagDialog] = useState(false);
+  const [unusedTags, setUnusedTags] = useState([]);
+  const [selectedUnusedTagIds, setSelectedUnusedTagIds] = useState([]);
+  
   /* ▼ フィルタモーダル */
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filterModalPos, setFilterModalPos] = useState({ x: 0, y: 0 });
@@ -94,9 +97,12 @@ export function useLeftPaneUIState() {
     showDeleteSelectedModal, setShowDeleteSelectedModal,
     deleteSelectedIds, setDeleteSelectedIds,
 
-    /* ▼ タグ作成、編集ダイアログ */
+    /* ▼ タグ作成、編集、削除ダイアログ */
     showCreateTagDialog, setShowCreateTagDialog,
     showEditTagDialog, setShowEditTagDialog,
     editingTag, setEditingTag,
+    showDeleteUnusedTagDialog, setShowDeleteUnusedTagDialog,
+    unusedTags, setUnusedTags,
+    selectedUnusedTagIds, setSelectedUnusedTagIds,
   };
 }

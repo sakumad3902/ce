@@ -1,4 +1,5 @@
 // src/components/AxisControl.jsx
+
 import React, { useState, useRef } from "react";
 
 export default function AxisControl({
@@ -10,10 +11,8 @@ export default function AxisControl({
   guideVisible,
   toggleGuide
 }) {
-  // 位置を state で管理
   const [pos, setPos] = useState({ x: 740, y: 100 });
 
-  // ドラッグ用
   const dragRef = useRef(null);
   const isDragging = useRef(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -45,29 +44,30 @@ export default function AxisControl({
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
-      style={{
-        left: pos.x,
-        top: pos.y
-      }}
+      style={{ left: pos.x, top: pos.y }}
     >
       <h4 className="axis-control-title">表示範囲設定</h4>
 
       {/* X軸 */}
       <div className="axis-block">
-        X軸：
+        <span>X軸：</span>
 
-        <label style={{ marginLeft: 6 }}>
+        <label htmlFor="x-auto" style={{ marginLeft: 6 }}>
           <input
+            id="x-auto"
             type="radio"
+            name="x-axis-mode"
             checked={axisMode.x === "auto"}
             onChange={() => setMode("x", "auto")}
           />
           自動
         </label>
 
-        <label style={{ marginLeft: 10 }}>
+        <label htmlFor="x-manual" style={{ marginLeft: 10 }}>
           <input
+            id="x-manual"
             type="radio"
+            name="x-axis-mode"
             checked={axisMode.x === "manual"}
             onChange={() => setMode("x", "manual")}
           />
@@ -75,14 +75,19 @@ export default function AxisControl({
         </label>
 
         <div className="axis-input-row">
+          <label htmlFor="x-min" style={{ display: "none" }}>X最小</label>
           <input
+            id="x-min"
             type="number"
             placeholder="最小"
             value={range.xMin}
             disabled={axisMode.x === "auto"}
             onChange={(e) => updateRange("xmin", e.target.value)}
           />
+
+          <label htmlFor="x-max" style={{ display: "none" }}>X最大</label>
           <input
+            id="x-max"
             type="number"
             placeholder="最大"
             value={range.xMax}
@@ -94,20 +99,24 @@ export default function AxisControl({
 
       {/* Y軸 */}
       <div className="axis-block">
-        Y軸：
+        <span>Y軸：</span>
 
-        <label style={{ marginLeft: 6 }}>
+        <label htmlFor="y-auto" style={{ marginLeft: 6 }}>
           <input
+            id="y-auto"
             type="radio"
+            name="y-axis-mode"
             checked={axisMode.y === "auto"}
             onChange={() => setMode("y", "auto")}
           />
           自動
         </label>
 
-        <label style={{ marginLeft: 10 }}>
+        <label htmlFor="y-manual" style={{ marginLeft: 10 }}>
           <input
+            id="y-manual"
             type="radio"
+            name="y-axis-mode"
             checked={axisMode.y === "manual"}
             onChange={() => setMode("y", "manual")}
           />
@@ -115,14 +124,19 @@ export default function AxisControl({
         </label>
 
         <div className="axis-input-row">
+          <label htmlFor="y-min" style={{ display: "none" }}>Y最小</label>
           <input
+            id="y-min"
             type="number"
             placeholder="最小"
             value={range.yMin}
             disabled={axisMode.y === "auto"}
             onChange={(e) => updateRange("ymin", e.target.value)}
           />
+
+          <label htmlFor="y-max" style={{ display: "none" }}>Y最大</label>
           <input
+            id="y-max"
             type="number"
             placeholder="最大"
             value={range.yMax}
@@ -145,3 +159,4 @@ export default function AxisControl({
     </div>
   );
 }
+

@@ -1,4 +1,5 @@
 // src/leftpane/loadAllTags.js
+
 export async function loadAllTags(api, currentProject, setAllTags) {
   if (!currentProject) return;
 

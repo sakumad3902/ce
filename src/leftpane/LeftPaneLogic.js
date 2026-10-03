@@ -263,18 +263,40 @@ export function useLeftPaneLogic({
 
   /* ----------------------------------------
       13) タグ削除
-  ---------------------------------------- */  
-  async function handleDeleteUnusedTags() {
-    if (selectedTagIds.length === 0) {
+  ---------------------------------------- */
+  async function openDeleteUnusedTagDialog() {
+    const unused = await api.fetchUnusedTags();   // 未使用タグだけ取得
+    ui.setUnusedTags(unused);
+    ui.setSelectedUnusedTagIds([]);               // 初期化
+    ui.setShowDeleteUnusedTagDialog(true);        // ダイアログ表示
+  }
+
+  function toggleUnusedTagSelection(tagId) {
+    ui.setSelectedUnusedTagIds(prev =>
+      prev.includes(tagId)
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
+  }
+
+  async function handleDeleteUnusedTagsOk() {
+    const ids = ui.selectedUnusedTagIds;
+
+    if (!ids.length) {
       alert("削除するタグが選択されていません");
       return;
     }
 
-    const res = await api.deleteTags(selectedTagIds);
+    const res = await api.deleteTags(ids);
 
     if (res.status === "OK") {
       alert(`${res.deleted_count} 件の未使用タグを削除しました`);
-      await loadAllTags(); // タグ一覧再取得
+
+      // 全タグ再ロード
+      await loadAllTags(api, currentProject, setAllTags);
+
+      ui.setShowDeleteUnusedTagDialog(false);
+      ui.setSelectedUnusedTagIds([]);
     } else {
       alert("削除に失敗: " + res.reason);
     }
@@ -347,7 +369,10 @@ export function useLeftPaneLogic({
     allTags,
     createTag,
     updateTag,
-    handleDeleteUnusedTags,
+    
+    toggleUnusedTagSelection,
+    openDeleteUnusedTagDialog,
+    handleDeleteUnusedTagsOk,
 
     ...ui
   };
