@@ -129,6 +129,15 @@ app.post("/tag_update", async (req, res) => {
   res.json(await callZmq("tag_update", { tag_id, name, normalized_name, user_id }));
 });
 
+app.post("/tag_delete", async (req, res) => {
+  const { tag_ids, user_id } = req.body;
+  // tag_ids は配列である必要がある
+  if (!Array.isArray(tag_ids)) {
+    return res.json({ status: "ERROR", reason: "tag_ids must be an array" });
+  }
+  res.json(await callZmq("tag_delete", { tag_ids, user_id }));
+});
+
 /* ============================================================
    load / apply_correction
 ============================================================ */

@@ -53,6 +53,7 @@ from routes.series_update_tags import handle_series_update_tags
 from routes.tag_create import handle_tag_create
 from routes.tag_update import handle_tag_update
 from routes.tag_list import handle_tag_list
+from routes.tag_delete import handle_tag_delete
 
 # 認証系
 from routes.register_user import handle as register_user
@@ -248,6 +249,9 @@ def dispatch_cmd(cmd, req):
 
     elif cmd == "tag_list":
         return run_tag_route(req, handle_tag_list)
+    
+    elif cmd == "tag_delete":
+        return run_tag_route(req, handle_tag_delete)    
 
     # User
     elif cmd == "register_user":

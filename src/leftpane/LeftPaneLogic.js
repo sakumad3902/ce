@@ -140,7 +140,6 @@ export function useLeftPaneLogic({
 
   const handleMoveSelectedOk = async () => {
     if (!ui.moveSelectedIds.length) return;
-
     if (!ui.moveTargetProjectId) {
       return alert("移動先が未選択です");
     }
@@ -263,7 +262,26 @@ export function useLeftPaneLogic({
   }
 
   /* ----------------------------------------
-     0) タグ作成・編集後に editTags を同期
+      13) タグ削除
+  ---------------------------------------- */  
+  async function handleDeleteUnusedTags() {
+    if (selectedTagIds.length === 0) {
+      alert("削除するタグが選択されていません");
+      return;
+    }
+
+    const res = await api.deleteTags(selectedTagIds);
+
+    if (res.status === "OK") {
+      alert(`${res.deleted_count} 件の未使用タグを削除しました`);
+      await loadAllTags(); // タグ一覧再取得
+    } else {
+      alert("削除に失敗: " + res.reason);
+    }
+  }
+
+  /* ----------------------------------------
+     14) タグ作成・編集後に editTags を同期
   ---------------------------------------- */
   useEffect(() => {
     setEditTags(prev =>
@@ -276,7 +294,7 @@ export function useLeftPaneLogic({
   }, [allTags]);
   
   /* ----------------------------------------
-     13) 外側クリックでメニュー閉じる
+     15) 外側クリックでメニュー閉じる
   ---------------------------------------- */
   useEffect(() => {
     if (!ui.contextMenu) return;
@@ -329,6 +347,7 @@ export function useLeftPaneLogic({
     allTags,
     createTag,
     updateTag,
+    handleDeleteUnusedTags,
 
     ...ui
   };

@@ -82,7 +82,7 @@ class Tag(Base):
     created_at = Column(Integer, nullable=False, default=lambda: int(time.time()))
     updated_at = Column(Integer, nullable=False, default=lambda: int(time.time()))
 
-    # ★ FK: User.id
+    # FK: User.id
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     updated_by = Column(Integer, ForeignKey("users.id"), nullable=True)
 
