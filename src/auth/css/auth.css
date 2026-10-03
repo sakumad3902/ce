@@ -1,0 +1,134 @@
+/* ============================================
+   ログイン画面専用の名前空間
+============================================ */
+.auth-page {
+  background: #f7f7f7;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 80px;
+  font-family: sans-serif;
+}
+
+/* ============================================
+   ログイン / 新規登録コンテナ
+============================================ */
+.auth-page .auth-container {
+  width: 360px;
+  padding: 40px;
+
+  background: #ffffff;
+  border-radius: 12px; /* ← 控えめに */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06); /* ← 少し弱め */
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ============================================
+   ロゴ
+============================================ */
+.auth-page .auth-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.auth-page .logo-image {
+  width: 75%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* ============================================
+   タイトル
+============================================ */
+.auth-page .auth-title {
+  font-size: 20px;
+  margin-bottom: 24px;
+  color: #444;
+}
+
+/* ============================================
+   入力欄
+============================================ */
+.auth-page .auth-input {
+  width: 85%;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+
+  font-size: 16px;
+  border-radius: 6px; /* ← 統一 */
+  border: 1px solid #ccc;
+  background: #fafafa;
+
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.auth-page .auth-input:focus {
+  outline: none;
+  border-color: #0078d4;
+  background: #fff;
+}
+
+/* ============================================
+   ログイン / 登録ボタン（控えめトーン）
+============================================ */
+.auth-page .auth-button {
+  width: 180px;
+  padding: 12px 0;
+  font-size: 16px;
+  font-weight: bold;
+
+  background: #4a5568 !important;       /* ← 寒色寄りの濃灰色 */
+  color: #fff !important;               /* ← 白文字で視認性UP */
+  border: 1px solid #3c4655 !important; /* ← 少し濃い枠で締める */
+  border-radius: 6px !important;
+
+  cursor: pointer;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+
+  margin: 16px auto;
+
+  box-shadow: 0 1px 2px rgba(0,0,0,0.10) !important;
+}
+
+.auth-page .auth-button:hover {
+  background: #5a6476 !important;       /* ← 少しだけ明るく */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+}
+
+/* ============================================
+   テキストリンク
+============================================ */
+.auth-page .auth-text-link {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #0078d4 !important;
+  text-align: center;
+  cursor: pointer;
+
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.auth-page .auth-text-link:hover {
+  text-decoration: underline;
+}
+
+/* ============================================
+   エラー表示
+============================================ */
+.auth-page .auth-error {
+  margin-top: 12px;
+  color: red;
+  font-size: 14px;
+}
