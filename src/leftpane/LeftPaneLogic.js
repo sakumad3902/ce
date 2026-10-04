@@ -9,8 +9,9 @@ import { useDbActions } from "./useDbActions";
 import { useProjectActions } from "./useProjectActions";
 import { buildProjectModalActions } from "./projectModalActions";
 import { buildSelectedList } from "./buildSelectedList";
+import { buildSelectionStateLogic } from "./selectionStateLogic";
+import { buildMenuLogic } from "./menuLogic";
 import { buildViewerActions } from "../utils/viewerActions";
-import { openMenu } from "../utils/openMenu";
 
 export function useLeftPaneLogic({
   loadHeader,
@@ -31,7 +32,7 @@ export function useLeftPaneLogic({
   projectList,
   api
 }) {
-  const [allTags, setAllTags] = useState([]); //全タグ用の空配列定義
+  const [allTags, setAllTags] = useState([]); // 全タグ用の空配列定義
 
   /* ----------------------------------------
     0) 全タグ一覧のロード（Tag テーブル全件）
@@ -51,7 +52,12 @@ export function useLeftPaneLogic({
   /* ----------------------------------------
      2) フィルタ
   ---------------------------------------- */
-  const dbFilter = useDbFilter({ headerNames, selectedOrder, currentProjectRef, allTags });
+  const dbFilter = useDbFilter({
+    headerNames,
+    selectedOrder,
+    currentProjectRef,
+    allTags
+  });
   const projectFilter = useProjectFilter({ projectList, setOpenProject });
 
   /* ----------------------------------------
@@ -74,57 +80,35 @@ export function useLeftPaneLogic({
   } = ui;
 
   /* ----------------------------------------
-     4) 選択中データ（UI表示用に整形）
+     4) メニュー・選択状態ロジック（外部化）
+  ---------------------------------------- */
+  const menuLogic = buildMenuLogic({ ui, menuRef });
+
+  const selectionStateLogic = buildSelectionStateLogic({
+    setSelectedOrder,
+    dbFilter,
+    setOpenSelected,
+  });
+
+  /* ----------------------------------------
+     5) 選択中データ（UI表示用に整形）
   ---------------------------------------- */
   const selectedList = useMemo(() => {
     return buildSelectedList(selectedOrder, originalSeries, projectList);
   }, [selectedOrder, originalSeries, projectList]);
 
   /* ----------------------------------------
-     5) 左ペインロジック
-  ---------------------------------------- */
-  const openDbMenu = (e, id) =>
-    openMenu(e, "dbMenu", id, 240, 180, ui.setContextMenu);
-
-  const openProjectMenu = (e, projectId, projectName) => {
-    ui.setContextMenu({
-      type: "projectMenu",
-      x: e.clientX,
-      y: e.clientY,
-      targetId: projectId,
-      project_id: projectId,
-      name: projectName,
-    });
-  };
-
-  const toggleSeries = (id) => {
-    setSelectedOrder(prev =>
-      prev.includes(id)
-        ? prev.filter(x => x !== id)
-        : prev.length < 30
-          ? [...prev, id]
-          : (alert("選択できるのは最大 30 件までです。"), prev)
-    );
-    if (setOpenSelected) setOpenSelected(true);
-  };
-
-  const clearSelectionAndReload = () => {
-    setSelectedOrder([]);
-    dbFilter.applyAllCorrections?.();
-    if (setOpenSelected) setOpenSelected(false);
-  };
-
-  const clearAllSelectionAndReload = () => {
-    setSelectedOrder(headerNames.map(h => h.id));
-    dbFilter.applyAllCorrections?.();
-    if (setOpenSelected) setOpenSelected(false);
-  };
-
-  /* ----------------------------------------
      6) 装置、DBアクション
   ---------------------------------------- */
   const projectActions = useProjectActions({ ui });
-  const dbActions = useDbActions({ ui, headerNames, selectedOrder, setSelectedOrder, dbFilter, api });
+  const dbActions = useDbActions({
+    ui,
+    headerNames,
+    selectedOrder,
+    setSelectedOrder,
+    dbFilter,
+    api
+  });
 
   /* ----------------------------------------
      7) 装置モーダル OK 処理
@@ -133,9 +117,9 @@ export function useLeftPaneLogic({
     ui,
     projectList,
     reloadProjects,
-    api,
     setSelectedProject,
-    setOpenProject
+    setOpenProject,
+    api,    
   });
 
   const handleMoveSelectedOk = async () => {
@@ -212,7 +196,7 @@ export function useLeftPaneLogic({
   const sortedTagSuggestions = useMemo(() => {
     if (!Array.isArray(allTags)) return [];
     return [...allTags]
-      .sort((a, b) => (b.usage || 0) - (a.usage || 0))
+      .sort((a, b) => (b.usage || 0) - (a.usage || 0));
   }, [allTags]);
 
   const toggleEditTag = (tag) => {
@@ -226,7 +210,7 @@ export function useLeftPaneLogic({
 
   /* ----------------------------------------
       11) タグ作成
-    ---------------------------------------- */
+  ---------------------------------------- */
   async function createTag({ name, normalized_name }) {
     const res = await api.createTag(name, normalized_name);
 
@@ -243,7 +227,7 @@ export function useLeftPaneLogic({
 
   /* ----------------------------------------
       12) タグ編集
-    ---------------------------------------- */
+  ---------------------------------------- */
   async function updateTag({ id, newName, normalized_name }) {
     const res = await api.updateTag(id, newName, normalized_name);
 
@@ -252,12 +236,10 @@ export function useLeftPaneLogic({
       return;
     }
 
-    // UI 更新
     setAllTags(prev =>
       prev.map(t => t.id === id ? { ...t, name: newName } : t)
     );
 
-    // 編集モーダルを閉じる
     setShowEditTagDialog(false);
   }
 
@@ -292,7 +274,6 @@ export function useLeftPaneLogic({
     if (res.status === "OK") {
       alert(`${res.deleted_count} 件の未使用タグを削除しました`);
 
-      // 全タグ再ロード
       await loadAllTags(api, currentProject, setAllTags);
 
       ui.setShowDeleteUnusedTagDialog(false);
@@ -308,72 +289,62 @@ export function useLeftPaneLogic({
   useEffect(() => {
     setEditTags(prev =>
       prev
-        // ① existingTags（= allTags）から最新のタグ情報を反映
         .map(tag => allTags.find(t => t.id === tag.id) || tag)
-        // ② 削除されたタグを editTags から除外
         .filter(tag => allTags.some(t => t.id === tag.id))
     );
   }, [allTags]);
   
   /* ----------------------------------------
-     15) 外側クリックでメニュー閉じる
-  ---------------------------------------- */
-  useEffect(() => {
-    if (!ui.contextMenu) return;
-
-    const close = (e) =>
-      menuRef.current &&
-      !menuRef.current.contains(e.target) &&
-      ui.setContextMenu(null);
-
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
-  }, [ui.contextMenu]);
-
-  /* ----------------------------------------
      返却
   ---------------------------------------- */
   return {
+    /* 1) フィルタ */
     ...dbFilter,
     ...projectFilter,
 
+    /* 2) リスト */
     dbList: dbFilter.dbList,
     selectedList,
+
+    /* 3) refs */
     dbListRef,
     selectedListRef,
     menuRef,
     projectMenuRef,
+
+    /* 4) プロジェクト・選択状態 */
     projectList,
     selectedProject,
 
-    toggleSeries,
-    clearSelectionAndReload,
-    clearAllSelectionAndReload,
+    /* 5) 外部化ロジック */
+    ...selectionStateLogic,
+    ...menuLogic,
 
+    /* 6) DB / プロジェクト / モーダル / Viewer アクション */
     ...dbActions,
     ...projectActions,
     ...projectModalActions,
     ...viewerActions,
 
-    openDbMenu,
-    openProjectMenu,
-
+    /* 7) 選択系アクション */
     handleMoveSelectedOk,
     handleDeleteSelectedOk,
 
+    /* 8) 編集モーダル */
     handleEditOk,
+
+    /* 9) タグ系 */
     sortedTagSuggestions,
     toggleEditTag,
     setTagFilter,
-  
     allTags,
     createTag,
     updateTag,
-    
     toggleUnusedTagSelection,
     openDeleteUnusedTagDialog,
     handleDeleteUnusedTagsOk,
 
+    /* 10) UI state */
     ...ui
   };
 }
