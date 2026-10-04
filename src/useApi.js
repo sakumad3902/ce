@@ -1,5 +1,6 @@
 // src/useApi.js
 import { useState, useRef } from "react";
+import { seriesService } from "./utils/seriesService";
 import { packSeriesToBinary } from "./utils/binary";
 import { post, get, postMultipart } from "./api/http";
 import { loadHeaderApi } from "./api/loadHeader";
@@ -112,7 +113,7 @@ export default function useApi(state) {
   } = state;
 
   const currentProjectRef = useRef(null);
-
+  const series = seriesService(api, state, currentProjectRef);
   const [isExporting, setIsExporting] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -135,27 +136,6 @@ export default function useApi(state) {
       names: selected.map(s => s.name),
       ids: selected.map(s => s.id)
     };
-  };
-
-  const updateField = async (id, field, value) => {
-    const project_id = currentProjectRef.current;
-
-    await api[
-      field === "name"
-        ? "rename"
-        : field === "comment"
-        ? "updateComment"
-        : "updateTimestamp"
-    ](id, value, project_id);
-
-    const apply = setter =>
-      setter(prev => prev.map(s => (s.id === id ? { ...s, [field]: value } : s)));
-
-    [setHeaderNames, setOriginalSeries].forEach(apply);
-
-    if (field === "name") {
-      [setCorrectedZero, setCorrectedY, setCorrectedXY].forEach(apply);
-    }
   };
 
   /* ============================================================
@@ -215,13 +195,6 @@ export default function useApi(state) {
 
     return data?.status === "OK" ? data : (alert("補正処理に失敗しました"), null);
   };
-
-  /* ============================================================
-     ▼ 編集系
-  ============================================================ */
-  const renameSeries = (id, newName) => updateField(id, "name", newName);
-  const updateComment = (id, comment) => updateField(id, "comment", comment);
-  const updateTimestamp = (id, ts) => updateField(id, "timestamp", ts);
 
   /* ============================================================
      ▼ 移動
@@ -316,9 +289,10 @@ export default function useApi(state) {
     updateTag: api.updateTag,
     deleteTags: api.deleteTags,
 
-    renameSeries,
-    updateComment,
-    updateTimestamp,
+    renameSeries: series.renameSeries,
+    updateComment: series.updateComment,
+    updateTimestamp: series.updateTimestamp,
+
     onMoveSelected,
     onDeleteSelected,
     applyCorrection,
