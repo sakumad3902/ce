@@ -36,6 +36,7 @@ export default function LeftPaneDialogs({ logic }) {
       {logic.showCreateTagDialog && (
         <CreateTagDialog
           mode="create"
+          categories={logic.categories}         // カテゴリー
           existingTags={logic.allTags}      // UI に渡す辞書
           onSubmit={logic.createTag}        // ロジックへ委譲
           onClose={() => logic.setShowCreateTagDialog(false)}
@@ -46,6 +47,7 @@ export default function LeftPaneDialogs({ logic }) {
       {logic.showEditTagDialog && (
         <CreateTagDialog
           mode="edit"
+          categories={logic.categories}         // カテゴリー
           existingTags={logic.allTags}    // UI に渡す辞書
           initialTag={logic.editingTag}   // ← 編集対象
           onSubmit={logic.updateTag}  // ロジックへ委譲

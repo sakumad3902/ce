@@ -26,6 +26,9 @@ export function useLeftPaneUIState() {
   const [unusedTags, setUnusedTags] = useState([]);
   const [selectedUnusedTagIds, setSelectedUnusedTagIds] = useState([]);
   
+  /* ▼ カテゴリ作成、編集、削除ダイアログ */
+  const [categories, setCategories] = useState([]);
+  
   /* ▼ フィルタモーダル */
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filterModalPos, setFilterModalPos] = useState({ x: 0, y: 0 });
@@ -104,5 +107,8 @@ export function useLeftPaneUIState() {
     showDeleteUnusedTagDialog, setShowDeleteUnusedTagDialog,
     unusedTags, setUnusedTags,
     selectedUnusedTagIds, setSelectedUnusedTagIds,
+
+    /* ▼ カテゴリ作成、編集、削除ダイアログ */
+    categories, setCategories,
   };
 }

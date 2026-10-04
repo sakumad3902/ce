@@ -34,15 +34,35 @@ export function useLeftPaneLogic({
 }) {
   const [allTags, setAllTags] = useState([]); // 全タグ用の空配列定義
 
+/* ----------------------------------------
+  0) UI state（useLeftPaneUIState に集約）
+---------------------------------------- */
+const ui = useLeftPaneUIState();
+
+const {
+  editName, setEditName,
+  editComment, setEditComment,
+  editTags, setEditTags,
+  editDate, setEditDate,
+  editTarget, setEditTarget,
+  showEditModal, setShowEditModal,
+  tagValueLocal, setTagValueLocal,
+  tagFilter, setTagFilter,
+  showCreateTagDialog, setShowCreateTagDialog,
+  showEditTagDialog, setShowEditTagDialog,
+  editingTag, setEditingTag,
+  categories, setCategories,
+} = ui;
+
   /* ----------------------------------------
-    0) 全タグ一覧のロード（Tag テーブル全件）
+    1) 全タグ、全カテゴリーのロード
   ---------------------------------------- */
   useEffect(() => {
-    loadAllTags(api, currentProject, setAllTags);
+    loadAllTags(api, currentProject, setAllTags, setCategories);
   }, [currentProject]);
 
   /* ----------------------------------------
-     1) refs
+     2) refs
   ---------------------------------------- */
   const dbListRef = useRef(null);
   const selectedListRef = useRef(null);
@@ -50,7 +70,7 @@ export function useLeftPaneLogic({
   const projectMenuRef = useRef(null);
 
   /* ----------------------------------------
-     2) フィルタ
+     3) フィルタ
   ---------------------------------------- */
   const dbFilter = useDbFilter({
     headerNames,
@@ -59,25 +79,6 @@ export function useLeftPaneLogic({
     allTags
   });
   const projectFilter = useProjectFilter({ projectList, setOpenProject });
-
-  /* ----------------------------------------
-     3) UI state（useLeftPaneUIState に集約）
-  ---------------------------------------- */
-  const ui = useLeftPaneUIState();
-
-  const {
-    editName, setEditName,
-    editComment, setEditComment,
-    editTags, setEditTags,
-    editDate, setEditDate,
-    editTarget, setEditTarget,
-    showEditModal, setShowEditModal,
-    tagValueLocal, setTagValueLocal,
-    tagFilter, setTagFilter,
-    showCreateTagDialog, setShowCreateTagDialog,
-    showEditTagDialog, setShowEditTagDialog,
-    editingTag, setEditingTag,
-  } = ui;
 
   /* ----------------------------------------
      4) メニュー・選択状態ロジック（外部化）
@@ -211,8 +212,9 @@ export function useLeftPaneLogic({
   /* ----------------------------------------
       11) タグ作成
   ---------------------------------------- */
-  async function createTag({ name, normalized_name }) {
-    const res = await api.createTag(name, normalized_name);
+  async function createTag({ name, normalized_name, category_id }) {
+    const res = await api.createTag(name, normalized_name, category_id);
+
 
     if (res?.status !== "OK" || !res.tag_id) {
       alert("タグ作成に失敗しました");
@@ -228,8 +230,8 @@ export function useLeftPaneLogic({
   /* ----------------------------------------
       12) タグ編集
   ---------------------------------------- */
-  async function updateTag({ id, newName, normalized_name }) {
-    const res = await api.updateTag(id, newName, normalized_name);
+  async function updateTag({ id, newName, normalized_name, category_id }) {
+    const res = await api.updateTag(id, newName, normalized_name, category_id);
 
     if (res?.status !== "OK") {
       alert("タグ名の更新に失敗しました");
@@ -293,7 +295,23 @@ export function useLeftPaneLogic({
         .filter(tag => allTags.some(t => t.id === tag.id))
     );
   }, [allTags]);
-  
+
+  /* ----------------------------------------
+     15) 欄外クリックでモーダル閉じる
+  ---------------------------------------- */  
+  useEffect(() => {
+    if (!ui.contextMenu) return;
+
+    const close = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        ui.setContextMenu(null);
+      }
+    };
+
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [ui.contextMenu]);
+
   /* ----------------------------------------
      返却
   ---------------------------------------- */

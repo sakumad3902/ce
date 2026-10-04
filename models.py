@@ -8,6 +8,22 @@ from sqlalchemy.orm import relationship, declarative_base
 Base = declarative_base()
 
 # ============================
+# Category テーブル
+# ============================
+class Category(Base):
+    __tablename__ = "categories"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False, unique=True)
+
+    created_at = Column(Integer, nullable=False, default=lambda: int(time.time()))
+    updated_at = Column(Integer, nullable=False, default=lambda: int(time.time()))
+
+    # Tag との 1:N
+    tags = relationship("Tag", back_populates="category", lazy="dynamic")
+
+
+# ============================
 # User テーブル
 # ============================
 class User(Base):
@@ -53,7 +69,6 @@ class User(Base):
         lazy="dynamic"
     )
 
-    # Tag との関連（作成・更新）
     created_tags = relationship(
         "Tag",
         foreign_keys="Tag.created_by",
@@ -69,7 +84,7 @@ class User(Base):
 
 
 # ============================
-# Tag テーブル
+# Tag テーブル（Category を追加）
 # ============================
 class Tag(Base):
     __tablename__ = "tags"
@@ -82,9 +97,18 @@ class Tag(Base):
     created_at = Column(Integer, nullable=False, default=lambda: int(time.time()))
     updated_at = Column(Integer, nullable=False, default=lambda: int(time.time()))
 
-    # FK: User.id
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     updated_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    # Category（NULL 許容）
+    category_id = Column(
+        Integer,
+        ForeignKey("categories.id", ondelete="SET NULL"),
+        nullable=True
+    )
+
+    # Category との 1:N
+    category = relationship("Category", back_populates="tags")
 
     creator = relationship("User", foreign_keys=[created_by], back_populates="created_tags")
     updater = relationship("User", foreign_keys=[updated_by], back_populates="updated_tags")

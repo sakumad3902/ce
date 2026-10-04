@@ -66,9 +66,14 @@ const api = {
 
   getSeriesWithCreator: (project_id) => post("get_series_with_creator", { project_id }),
 
+  fetchCategories: () => get("categories"),
+  createCategory: (name) => post("category_create", { name, user_id: localStorage.getItem("user_id") }),
+  updateCategory: (id, name) => post("category_update", { id, name, user_id: localStorage.getItem("user_id") }),
+  deleteCategory: (id) => post("category_delete", { id, user_id: localStorage.getItem("user_id") }),
+
   fetchTags: () => get("tags"),
-  createTag: (name, normalized_name) => post("tag_create", { name, normalized_name, user_id: localStorage.getItem("user_id") }),
-  updateTag: (tag_id, name, normalized_name) => post("tag_update", { tag_id, name, normalized_name, user_id: localStorage.getItem("user_id") }),
+  createTag: (name, normalized_name, category_id) => post("tag_create", { name, normalized_name, category_id, user_id: localStorage.getItem("user_id") }),
+  updateTag: (tag_id, name, normalized_name, category_id) => post("tag_update", { tag_id, name, normalized_name, category_id, user_id: localStorage.getItem("user_id") }),
   fetchUnusedTags: () => get("tags_unused"),
   deleteTags: (tagIds) => post("tag_delete", { tag_ids: tagIds, user_id: localStorage.getItem("user_id") }),
 
@@ -304,6 +309,7 @@ export default function useApi(state) {
     updateSeriesTags: api.updateSeriesTags,
     getSeriesWithCreator: api.getSeriesWithCreator, 
 
+    fetchCategories: api.fetchCategories,
     fetchTags: api.fetchTags,
     createTag: api.createTag,
     fetchUnusedTags: api.fetchUnusedTags,

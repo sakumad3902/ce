@@ -111,6 +111,30 @@ app.post("/delete_project", async (req, res) => {
 });
 
 /* ============================================================
+   Category 管理
+============================================================ */
+app.get("/categories", async (req, res) => {
+  const reply = await callZmq("category_list", {});
+  if (reply.status !== "OK") return res.json([]);
+  res.json(reply.categories);
+});
+
+app.post("/category_create", async (req, res) => {
+  const { name, user_id } = req.body;
+  res.json(await callZmq("category_create", { name, user_id }));
+});
+
+app.post("/category_update", async (req, res) => {
+  const { id, name, user_id } = req.body;
+  res.json(await callZmq("category_update", { id, name, user_id }));
+});
+
+app.post("/category_delete", async (req, res) => {
+  const { id, user_id } = req.body;
+  res.json(await callZmq("category_delete", { id, user_id }));
+});
+
+/* ============================================================
    Tag 管理
 ============================================================ */
 app.get("/tags", async (req, res) => {

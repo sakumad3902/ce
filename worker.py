@@ -50,6 +50,11 @@ from routes.evaluate_series import evaluate_series
 from routes.get_series_with_creator import handle_get_series_with_creator
 from routes.series_update_tags import handle_series_update_tags
 
+from routes.category_list import handle_category_list
+from routes.category_create import handle_category_create
+from routes.category_update import handle_category_update
+from routes.category_delete import handle_category_delete
+
 from routes.tag_list import handle_tag_list
 from routes.tag_create import handle_tag_create
 from routes.tag_update import handle_tag_update
@@ -239,6 +244,19 @@ def dispatch_cmd(cmd, req):
 
     elif cmd == "projects":
         return run_series_route(req, handle_load_projects)
+
+    # Category
+    elif cmd == "category_list":
+        return run_tag_route(req, handle_category_list)
+
+    elif cmd == "category_create":
+        return run_tag_route(req, handle_category_create)
+
+    elif cmd == "category_update":
+        return run_tag_route(req, handle_category_update)
+
+    elif cmd == "category_delete":
+        return run_tag_route(req, handle_category_delete)
 
     # Tag
     elif cmd == "tag_list":

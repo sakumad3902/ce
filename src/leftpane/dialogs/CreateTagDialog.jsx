@@ -1,7 +1,6 @@
 import Modal from "../Modal";
 import { useState, useMemo } from "react";
 
-// ▼ normalized_name 用（重複判定・DB の unique 制約用）
 function normalizeTagName(name) {
   return name.trim().toLowerCase().normalize("NFKC");
 }
@@ -9,16 +8,19 @@ function normalizeTagName(name) {
 export default function CreateTagDialog({
   mode = "create",
   existingTags,
+  categories,          // カテゴリ一覧を親から受け取る
   initialTag,
   onSubmit,
+  onCreateCategory,    // カテゴリ作成
+  onEditCategory,      // カテゴリ編集
+  onDeleteCategory,    // カテゴリ削除
   onClose
 }) {
   const [name, setName] = useState(initialTag?.name ?? "");
+  const [categoryId, setCategoryId] = useState(initialTag?.category_id ?? null);
 
-  // ▼ normalized_name（重複判定用）
   const normalized = normalizeTagName(name);
 
-  // ▼ 入力が空なら候補を出さない
   const suggestions = useMemo(() => {
     if (!normalized) return [];
     return existingTags.filter(t =>
@@ -26,18 +28,12 @@ export default function CreateTagDialog({
     );
   }, [normalized, existingTags]);
 
-  // ▼ 重複時の処理
   const isDuplicate = existingTags.some(t => {
-    // 編集時は「自分自身と normalized が一致する場合」は重複扱いにしない
-    if (mode === "edit" && t.id === initialTag?.id) {
-      // 自分自身なら normalized が一致しても OK
-      return false;
-    }
-    // 新規作成時は normalized が一致したら重複
+    if (mode === "edit" && t.id === initialTag?.id) return false;
     return normalizeTagName(t.name) === normalized;
   });
 
-  const isTooLong = name.length > 20; //最大20文字
+  const isTooLong = name.length > 20;
 
   const handleOk = () => {
     if (!normalized) return;
@@ -45,17 +41,17 @@ export default function CreateTagDialog({
     if (isTooLong) return;
 
     if (mode === "create") {
-      // name はユーザー入力そのまま
-      // normalized_name は正規化したもの
       onSubmit({
-        name,                 // ← 大文字保持
-        normalized_name: normalized
+        name,
+        normalized_name: normalized,
+        category_id: categoryId
       });
     } else {
       onSubmit({
         id: initialTag.id,
-        newName: name,        // ← 大文字保持
-        normalized_name: normalized
+        newName: name,
+        normalized_name: normalized,
+        category_id: categoryId 
       });
     }
 
@@ -64,7 +60,7 @@ export default function CreateTagDialog({
 
   return (
     <Modal
-      title={mode === "create" ? "タグ作成" : "タグ名の編集"}
+      title={mode === "create" ? "タグ作成" : "タグ編集"}
       onCancel={onClose}
       onOk={handleOk}
       okText="OK"
@@ -72,44 +68,60 @@ export default function CreateTagDialog({
     >
       <div className="modal-content">
 
+        {/* ▼ タグ名入力 */}
         <input
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder="タグ名（20文字まで）"
         />
 
-        {isTooLong && (
-          <div style={{ color: "red" }}>
-            20文字以内で入力してください
-          </div>
-        )}
+        {isTooLong && <div style={{ color: "red" }}>20文字以内で入力してください</div>}
+        {isDuplicate && <div style={{ color: "red" }}>このタグ名は既に存在します</div>}
 
-        {isDuplicate && (
-          <div style={{ color: "red" }}>
-            このタグ名は既に存在します
-          </div>
-        )}
+        {/* ▼ カテゴリ選択欄 */}
+        <div style={{ marginTop: 12 }}>
+          <label>カテゴリ：</label>
+          <select
+            value={categoryId ?? ""}
+            onChange={e => {
+              const v = e.target.value;
+              setCategoryId(v === "" ? null : Number(v));
+            }}
+          >
+            <option value="">（カテゴリなし）</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
 
+          {/* ▼ カテゴリ管理ボタン */}
+          <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+            <button onClick={onCreateCategory}>カテゴリ作成</button>
+
+            {categoryId && (
+              <>
+                <button onClick={() => onEditCategory(categoryId)}>カテゴリ名変更</button>
+                <button onClick={() => onDeleteCategory(categoryId)}>カテゴリ削除</button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* ▼ タグ候補 */}
         {normalized && (
           <div className="tag-suggest-box">
             {suggestions.map(s => {
-              const isExactMatch =
-                normalizeTagName(s.name) === normalized;
-
+              const isExactMatch = normalizeTagName(s.name) === normalized;
               return (
                 <div
                   key={s.id}
-                  className={`tag-suggest-item ${
-                    isExactMatch ? "exact-match" : ""
-                  }`}
+                  className={`tag-suggest-item ${isExactMatch ? "exact-match" : ""}`}
                   onClick={() => setName(s.name)}
                 >
                   {s.name}
-                  {isExactMatch && (
-                    <span style={{ marginLeft: 8, color: "red" }}>
-                      （既存）
-                    </span>
-                  )}
+                  {isExactMatch && <span style={{ marginLeft: 8, color: "red" }}>（既存）</span>}
                 </div>
               );
             })}

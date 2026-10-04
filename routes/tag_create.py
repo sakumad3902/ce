@@ -2,7 +2,7 @@
 
 import time
 from sqlalchemy.orm import Session
-from models import Tag, User
+from models import Tag, User, Category
 
 def handle_tag_create(req, session: Session):
     print("TAG_CREATE params:", req, flush=True)
@@ -10,6 +10,7 @@ def handle_tag_create(req, session: Session):
     name = req.get("name")
     normalized_name = req.get("normalized_name")
     user_id = req.get("user_id")
+    category_id = req.get("category_id")
 
     if not name or not normalized_name:
         return {"status": "ERROR", "reason": "name and normalized_name required"}
@@ -19,12 +20,24 @@ def handle_tag_create(req, session: Session):
     try:
         with session.begin():
 
+            # ----------------------------------------
             # User チェック
+            # ----------------------------------------
             user = session.query(User).filter(User.id == user_id).first()
             if not user:
                 raise ValueError("user not found")
 
+            # ----------------------------------------
+            # Category チェック（NULL 許容）
+            # ----------------------------------------
+            if category_id is not None:
+                cat = session.query(Category).filter(Category.id == category_id).first()
+                if not cat:
+                    raise ValueError("category not found")
+
+            # ----------------------------------------
             # 重複チェック
+            # ----------------------------------------
             dup = (
                 session.query(Tag)
                 .filter(
@@ -36,7 +49,9 @@ def handle_tag_create(req, session: Session):
             if dup:
                 raise ValueError("Tag already exists")
 
+            # ----------------------------------------
             # 作成
+            # ----------------------------------------
             now = int(time.time())
             tag = Tag(
                 name=name,
@@ -44,14 +59,13 @@ def handle_tag_create(req, session: Session):
                 created_at=now,
                 updated_at=now,
                 created_by=user_id,
-                updated_by=user_id
+                updated_by=user_id,
+                category_id=category_id
             )
             session.add(tag)
 
-        # begin を抜けた時点で commit 完了
         return {"status": "OK", "tag_id": tag.id}
 
     except Exception as e:
-        # begin の外で rollback は OK（begin が閉じていれば）
         session.rollback()
         return {"status": "ERROR", "reason": str(e)}
