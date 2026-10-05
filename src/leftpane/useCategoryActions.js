@@ -43,10 +43,16 @@ export function useCategoryActions({ api, setCategories, ui }) {
     ui.setShowDeleteCategoryDialog(false);
   }
 
+  function openCreateCategoryDialog() {
+    ui.setEditingCategory(null);
+    ui.setShowCreateCategoryDialog(true);
+  }
+
   function openEditCategoryDialog(category) {
     ui.setEditingCategory(category);
     ui.setShowEditCategoryDialog(true);
   }
+
 
   function openDeleteCategoryDialog(category) {
     ui.setEditingCategory(category);
@@ -57,6 +63,7 @@ export function useCategoryActions({ api, setCategories, ui }) {
     createCategory,
     updateCategory,
     deleteCategory,
+    openCreateCategoryDialog,
     openEditCategoryDialog,
     openDeleteCategoryDialog
   };

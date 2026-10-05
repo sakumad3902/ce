@@ -42,6 +42,12 @@ export default function LeftPaneDialogs({ logic }) {
           categories={logic.categories}         // カテゴリー
           existingTags={logic.allTags}      // UI に渡す辞書
           onSubmit={logic.createTag}        // ロジックへ委譲
+
+          // useCategoryActions の関数を渡す
+          onCreateCategory={logic.openCreateCategoryDialog}
+          onEditCategory={logic.openEditCategoryDialog}
+          onDeleteCategory={logic.openDeleteCategoryDialog}
+
           onClose={() => logic.setShowCreateTagDialog(false)}
         />
       )}
@@ -72,6 +78,8 @@ export default function LeftPaneDialogs({ logic }) {
       {/* ▼ カテゴリ作成 */}
       {logic.showCreateCategoryDialog && (
         <CreateCategoryDialog
+          mode="create"
+          existingCategories={logic.categories}
           onSubmit={logic.createCategory}
           onClose={() => logic.setShowCreateCategoryDialog(false)}
         />
@@ -79,7 +87,9 @@ export default function LeftPaneDialogs({ logic }) {
 
       {/* ▼ カテゴリ編集 */}
       {logic.showEditCategoryDialog && (
-        <EditCategoryDialog
+        <CreateCategoryDialog
+          mode="edit"
+          existingCategories={logic.categories}
           initialCategory={logic.editingCategory}
           onSubmit={logic.updateCategory}
           onClose={() => logic.setShowEditCategoryDialog(false)}

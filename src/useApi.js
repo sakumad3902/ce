@@ -265,6 +265,10 @@ export default function useApi(state) {
     updateSeriesTags: api.updateSeriesTags,
     getSeriesWithCreator: api.getSeriesWithCreator, 
 
+    createCategory: api.createCategory,
+    updateCategory: api.updateCategory,
+    deleteCategory: api.deleteCategory,
+
     fetchCategories: api.fetchCategories,
     fetchTags: api.fetchTags,
     createTag: api.createTag,
