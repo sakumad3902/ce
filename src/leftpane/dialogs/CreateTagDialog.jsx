@@ -10,6 +10,7 @@ export default function CreateTagDialog({
   existingTags,
   categories,          // カテゴリ一覧を親から受け取る
   initialTag,
+  initialCategory,
   onSubmit,
   onCreateCategory,    // カテゴリ作成
   onEditCategory,      // カテゴリ編集
@@ -18,7 +19,6 @@ export default function CreateTagDialog({
 }) {
   const [name, setName] = useState(initialTag?.name ?? "");
   const [categoryId, setCategoryId] = useState(initialTag?.category_id ?? null);
-
   const normalized = normalizeTagName(name);
 
   const suggestions = useMemo(() => {

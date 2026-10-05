@@ -115,7 +115,8 @@ const {
   const categoryActions = useCategoryActions({
     api,
     setCategories,
-    ui
+    ui,
+    categories
   });
 
   /* ----------------------------------------

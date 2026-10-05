@@ -1,6 +1,6 @@
 // src/leftpane/useCategoryActions.js
 
-export function useCategoryActions({ api, setCategories, ui }) {
+export function useCategoryActions({ api, setCategories, ui, categories }){
 
   async function createCategory({ name }) {
     const res = await api.createCategory(name);
@@ -48,11 +48,11 @@ export function useCategoryActions({ api, setCategories, ui }) {
     ui.setShowCreateCategoryDialog(true);
   }
 
-  function openEditCategoryDialog(category) {
+  function openEditCategoryDialog(categoryId) {
+    const category = categories.find(c => c.id === categoryId);
     ui.setEditingCategory(category);
     ui.setShowEditCategoryDialog(true);
   }
-
 
   function openDeleteCategoryDialog(category) {
     ui.setEditingCategory(category);
