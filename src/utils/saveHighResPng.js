@@ -24,16 +24,30 @@ export const saveHighResPng = (chart, canvas) => {
         position: "right",
         labels: {
           color: "#000",
-          font: { size: 10 },
+          font: { size: 12 },
           maxWidth: 100,
           boxWidth: 8
         }
       },
       tooltip: { enabled: false },
       chartArea: { backgroundColor: "white" },
+
       annotation: JSON.parse(JSON.stringify(chart.options.plugins.annotation)),
-      zoom: { zoom: { enabled: false }, pan: { enabled: false } }
+
+      zoom: {
+        zoom: {
+          wheel: { enabled: false },
+          pinch: { enabled: false },
+          drag: { enabled: false },
+          mode: "xy"
+        },
+        pan: {
+          enabled: false,
+          mode: "xy"
+        }
+      }
     },
+
     scales: JSON.parse(JSON.stringify(chart.options.scales))
   };
 

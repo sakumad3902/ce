@@ -276,7 +276,7 @@ const {
     if (res.status === "OK") {
       alert(`${res.deleted_count} 件の未使用タグを削除しました`);
 
-      await loadAllTags(api, currentProject, setAllTags);
+      await loadAllTags(api, currentProject, setAllTags, setCategories);
 
       ui.setShowDeleteUnusedTagDialog(false);
       ui.setSelectedUnusedTagIds([]);

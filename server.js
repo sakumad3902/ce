@@ -14,7 +14,7 @@ app.use(express.json({ limit: "50mb" }));
 app.use("/downloads", express.static(path.join(__dirname, "downloads")));
 
 /* ============================================================
-   ZMQ 通信
+   ZMQ 通信ユーティリティ
 ============================================================ */
 async function callZmq(cmd, payload = {}) {
   try {
@@ -29,164 +29,111 @@ const createZmqRoute = cmd => async (req, res) =>
   res.json(await callZmq(cmd, req.body));
 
 /* ============================================================
-   register_user / login_user
+   仕様が必要なルート（createZmqRoute を使わない）
 ============================================================ */
+
+// register_user
 app.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
   res.json(await callZmq("register_user", { username, email, password }));
 });
 
+// login_user
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
   res.json(await callZmq("login_user", { email, password }));
 });
 
-/* ============================================================
-   /session_check
-============================================================ */
+// session_check
 app.post("/session_check", async (req, res) => {
   const { token } = req.body;
   res.json(await callZmq("session_check", { token }));
 });
 
 /* ============================================================
-   /projects
+   プロジェクト管理（仕様が明確なので createZmqRoute を使わない）
 ============================================================ */
+
+// GET /projects
 app.get("/projects", async (req, res) => {
   try {
-    const reply = await callZmq("projects");   
-
-    if (reply.status !== "OK") {
-      return res.json([]);
-    }
-
-    res.json(reply.projects);  
+    const reply = await callZmq("projects");
+    if (reply.status !== "OK") return res.json([]);
+    res.json(reply.projects);
   } catch (err) {
     console.error("Failed to load projects:", err);
     res.status(500).json({ error: "Failed to load projects" });
   }
 });
 
-/* ============================================================
-   add_project
-============================================================ */
+// add_project
 app.post("/add_project", async (req, res) => {
-  try {
-    const { name, user_id } = req.body;
-    const reply = await callZmq("add_project", { name, user_id });
+  const { name, user_id } = req.body;
+  const reply = await callZmq("add_project", { name, user_id });
 
-    if (reply?.status !== "OK") {
-      return res.json({
-        status: "ERROR",
-        reason: reply?.reason || "worker failed"
-      });
-    }
-  
-    res.json({ status: "OK", project_id: reply.project_id });
-
-  } catch (err) {
-    console.error("add_project error:", err);
-    res.status(500).json({ status: "ERROR", reason: err.message });
+  if (reply?.status !== "OK") {
+    return res.json({
+      status: "ERROR",
+      reason: reply?.reason || "worker failed"
+    });
   }
+
+  res.json({ status: "OK", project_id: reply.project_id });
 });
 
-/* ============================================================
-   rename_project / delete_project
-============================================================ */
+// rename_project
 app.post("/rename_project", async (req, res) => {
   const { project_id, newName, user_id } = req.body;
   res.json(await callZmq("rename_project", { project_id, newName, user_id }));
 });
 
+// delete_project
 app.post("/delete_project", async (req, res) => {
-  const { project_id, user_id  } = req.body;
-  res.json(await callZmq("delete_project", { project_id, user_id }));
-});
-/* ============================================================
-   delete_project
-============================================================ */
-app.post("/delete_project", async (req, res) => {
-  const { project_id, user_id  } = req.body;
+  const { project_id, user_id } = req.body;
   res.json(await callZmq("delete_project", { project_id, user_id }));
 });
 
 /* ============================================================
-   Category 管理
+   Category / Tag CRUD（配列ループで軽量化）
 ============================================================ */
+
+const crudCommands = [
+  "category_create",
+  "category_update",
+  "category_delete",
+  "tag_create",
+  "tag_update",
+  "tag_delete"
+];
+
+crudCommands.forEach(cmd => {
+  app.post(`/${cmd}`, createZmqRoute(cmd));
+});
+
+// GET /categories
 app.get("/categories", async (req, res) => {
   const reply = await callZmq("category_list", {});
   if (reply.status !== "OK") return res.json([]);
   res.json(reply.categories);
 });
 
-app.post("/category_create", async (req, res) => {
-  const { name, user_id } = req.body;
-  res.json(await callZmq("category_create", { name, user_id }));
-});
-
-app.post("/category_update", async (req, res) => {
-  const { id, name, user_id } = req.body;
-  res.json(await callZmq("category_update", { id, name, user_id }));
-});
-
-app.post("/category_delete", async (req, res) => {
-  const { id, user_id } = req.body;
-  res.json(await callZmq("category_delete", { id, user_id }));
-});
-
-/* ============================================================
-   Tag 管理
-============================================================ */
+// GET /tags
 app.get("/tags", async (req, res) => {
   const reply = await callZmq("tag_list", {});
   if (reply.status !== "OK") return res.json([]);
   res.json(reply.tags);
 });
 
-app.post("/tag_create", async (req, res) => {
-  const { name, normalized_name, user_id } = req.body;
-  res.json(await callZmq("tag_create", { name, normalized_name, user_id }));
-});
-
-app.post("/tag_update", async (req, res) => {
-  const { tag_id, name, normalized_name, user_id } = req.body;
-  res.json(await callZmq("tag_update", { tag_id, name, normalized_name, user_id }));
-});
-
+// GET /tags_unused
 app.get("/tags_unused", async (req, res) => {
   const reply = await callZmq("tag_list_unused", {});
   if (reply.status !== "OK") return res.json([]);
   res.json(reply.tags);
 });
 
-app.post("/tag_delete", async (req, res) => {
-  const { tag_ids, user_id } = req.body;
-  // tag_ids は配列である必要がある
-  if (!Array.isArray(tag_ids)) {
-    return res.json({ status: "ERROR", reason: "tag_ids must be an array" });
-  }
-  res.json(await callZmq("tag_delete", { tag_ids, user_id }));
-});
-
 /* ============================================================
-   load / apply_correction
+   series_update_tags（multipart + JSON parse）
 ============================================================ */
-app.post("/load", createZmqRoute("load"));
-app.post("/apply_correction", createZmqRoute("apply_correction"));
-
-/* ============================================================
-   Rename / update_comment / update_timestamp
-============================================================ */
-app.post("/rename", async (req, res) => {
-  const { id, newName, project_id } = req.body;
-  res.json(await callZmq("rename", { id, newName, project_id }));
-});
-
-app.post("/update_comment", async (req, res) => {
-  const { id, comment, project_id } = req.body;
-  res.json(await callZmq("update_comment", { id, comment, project_id }));
-});
-
 app.post("/series_update_tags", upload.none(), async (req, res) => {
   const { series_id, tagIds, user_id } = req.body;
 
@@ -204,42 +151,47 @@ app.post("/series_update_tags", upload.none(), async (req, res) => {
   }));
 });
 
-app.post("/update_timestamp", async (req, res) => {
-  const { id, timestamp, project_id } = req.body;
-  res.json(await callZmq("update_timestamp", { id, timestamp, project_id }));
-});
-
 /* ============================================================
-   move_selected
+   createZmqRoute で十分なルート（仕様が req.body のまま）
 ============================================================ */
-app.post("/move_selected", async (req, res) => {
-  const { ids, target_project_id, user_id } = req.body;
-  res.json(await callZmq("move_selected", {ids, target_project_id, user_id }));
+
+[
+  "rename",
+  "update_comment",
+  "update_timestamp",
+  "move_selected",
+  "delete_selected",
+  "append_clipboard",
+  "evaluate_series",
+  "export_excel",
+  "export_excel_start"
+].forEach(cmd => {
+  app.post(`/${cmd}`, createZmqRoute(cmd));
+});
+
+// export_excel_status（GET）
+app.get("/export_excel_status", async (req, res) => {
+  const jobId = req.query.jobId;
+  res.json(await callZmq("export_excel_status", { jobId }));
 });
 
 /* ============================================================
-   delete_selected
+   evaluate_series_excel（Excel バイナリ返却）
 ============================================================ */
-app.post("/delete_selected", async (req, res) => {
-  const { ids, user_id } = req.body;
-  res.json(await callZmq("delete_selected", { ids, user_id }));
+app.post("/evaluate_series_excel", async (req, res) => {
+  const reply = await callZmq("evaluate_series", req.body);
+  const excelBuffer = Buffer.from(reply.excel, "base64");
+
+  res.setHeader("Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+  res.setHeader("Content-Disposition", "attachment; filename=evaluate.xlsx");
+
+  res.send(excelBuffer);
 });
 
 /* ============================================================
-   append_clipboard
-============================================================ */
-app.post("/append_clipboard", async (req, res) => {
-  const { project_id, series, user_id } = req.body;
-  res.json(await callZmq("append_clipboard", { project_id, series, user_id }));
-});
-
-app.post("/get_series_with_creator", async (req, res) => {
-  const { project_id } = req.body;
-  res.json(await callZmq("get_series_with_creator", { project_id }));
-});
-
-/* ============================================================
-   Parquet インポート／エクスポート
+   Parquet インポート／エクスポート（特殊系）
 ============================================================ */
 const parquetRoute = cmd => async (req, res) => {
   const meta = { project_id: req.body.project_id };
@@ -253,7 +205,6 @@ const parquetRoute = cmd => async (req, res) => {
   }
 
   const fileBuffer = req.file ? req.file.buffer : Buffer.from([]);
-
   const reply = await zmq.sendMultipart(cmd, meta, fileBuffer);
   res.json(reply);
 };
@@ -262,43 +213,6 @@ app.post("/import_parquet_preview", upload.single("file"), parquetRoute("import_
 app.post("/import_parquet_apply", upload.single("file"), parquetRoute("import_parquet_apply"));
 app.post("/export_parquet_preview", upload.none(), parquetRoute("export_parquet_preview"));
 app.post("/export_parquet_apply", upload.none(), parquetRoute("export_parquet_apply"));
-
-/* ============================================================
-   evaluate_series
-============================================================ */
-const evaluateSeriesCore = req => callZmq("evaluate_series", req.body);
-
-app.post("/evaluate_series", async (req, res) => {
-  res.json(await evaluateSeriesCore(req));
-});
-
-app.post("/evaluate_series_excel", async (req, res) => {
-  const reply = await evaluateSeriesCore(req);
-  const excelBuffer = Buffer.from(reply.excel, "base64");
-
-  res.setHeader("Content-Type",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-  );
-  res.setHeader("Content-Disposition", "attachment; filename=evaluate.xlsx");
-
-  res.send(excelBuffer);
-});
-
-/* ============================================================
-   Excel エクスポート
-============================================================ */
-app.post("/export_excel", async (req, res) => {
-  res.json(await callZmq("export_excel", req.body));
-});
-
-app.post("/export_excel_start", async (req, res) => {
-  res.json(await callZmq("export_excel_start", req.body));
-});
-
-app.get("/export_excel_status", async (req, res) => {
-  const jobId = req.query.jobId;
-  res.json(await callZmq("export_excel_status", { jobId }));
-});
 
 /* ============================================================
    起動

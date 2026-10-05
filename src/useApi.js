@@ -1,6 +1,7 @@
 // src/useApi.js
 import { useState, useRef } from "react";
 import { seriesService } from "./utils/seriesService";
+import { correctionService } from "./utils/correctionService";
 import { packSeriesToBinary } from "./utils/binary";
 import { post, get, postMultipart } from "./api/http";
 import { loadHeaderApi } from "./api/loadHeader";
@@ -138,6 +139,8 @@ export default function useApi(state) {
     };
   };
 
+  const correction = correctionService(api, state, getPacked);
+
   /* ============================================================
      ▼ プロジェクト管理（project_id）
   ============================================================ */
@@ -174,26 +177,6 @@ export default function useApi(state) {
     }
 
     return { headers: merged };
-  };
-
-  /* ============================================================
-     ▼ 補正処理
-  ============================================================ */
-  const applyCorrection = async (params) => {
-    const { selected, packed, lengths, names, ids } = getPacked();
-
-    const refIndex = Math.max(0, selected.findIndex(s => s.id === selectedOrder[0]));
-
-    const data = await api.applyCorrection({
-      ...params,
-      packed,
-      lengths,
-      ids,
-      names,
-      refIndex
-    });
-
-    return data?.status === "OK" ? data : (alert("補正処理に失敗しました"), null);
   };
 
   /* ============================================================
@@ -292,10 +275,10 @@ export default function useApi(state) {
     renameSeries: series.renameSeries,
     updateComment: series.updateComment,
     updateTimestamp: series.updateTimestamp,
+    applyCorrection: correction.applyCorrection,
 
     onMoveSelected,
     onDeleteSelected,
-    applyCorrection,
     onExportExcel,
     onEvaluateSeries,
 
