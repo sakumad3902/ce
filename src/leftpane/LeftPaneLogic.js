@@ -7,6 +7,7 @@ import { useDbFilter } from "./useDbFilter";
 import { useProjectFilter } from "./useProjectFilter";
 import { useDbActions } from "./useDbActions";
 import { useProjectActions } from "./useProjectActions";
+import { useCategoryActions } from "./useCategoryActions";
 import { buildProjectModalActions } from "./projectModalActions";
 import { buildSelectedList } from "./buildSelectedList";
 import { buildSelectionStateLogic } from "./selectionStateLogic";
@@ -32,7 +33,8 @@ export function useLeftPaneLogic({
   projectList,
   api
 }) {
-  const [allTags, setAllTags] = useState([]); // 全タグ用の空配列定義
+  const [categories, setCategories] = useState([]);
+  const [allTags, setAllTags] = useState([]);
 
 /* ----------------------------------------
   0) UI state（useLeftPaneUIState に集約）
@@ -51,7 +53,6 @@ const {
   showCreateTagDialog, setShowCreateTagDialog,
   showEditTagDialog, setShowEditTagDialog,
   editingTag, setEditingTag,
-  categories, setCategories,
 } = ui;
 
   /* ----------------------------------------
@@ -109,6 +110,12 @@ const {
     setSelectedOrder,
     dbFilter,
     api
+  });
+
+  const categoryActions = useCategoryActions({
+    api,
+    setCategories,
+    ui
   });
 
   /* ----------------------------------------
@@ -351,7 +358,11 @@ const {
     /* 8) 編集モーダル */
     handleEditOk,
 
-    /* 9) タグ系 */
+    /* 9) カテゴリ系 */
+    categories,
+    ...categoryActions,
+
+    /* 10) タグ系 */
     sortedTagSuggestions,
     toggleEditTag,
     setTagFilter,

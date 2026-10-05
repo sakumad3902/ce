@@ -18,6 +18,12 @@ export function useLeftPaneUIState() {
   const [tagValueLocal, setTagValueLocal] = useState("");
   const [tagSuggestions, setTagSuggestions] = useState([]);
 
+  /* ▼ カテゴリ作成、編集、削除ダイアログ */
+  const [showCreateCategoryDialog, setShowCreateCategoryDialog] = useState(false);
+  const [showEditCategoryDialog, setShowEditCategoryDialog] = useState(false);
+  const [showDeleteCategoryDialog, setShowDeleteCategoryDialog] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+
   /* ▼ タグ作成、編集、削除ダイアログ */
   const [showCreateTagDialog, setShowCreateTagDialog] = useState(false);
   const [showEditTagDialog, setShowEditTagDialog] = useState(false);
@@ -25,9 +31,6 @@ export function useLeftPaneUIState() {
   const [showDeleteUnusedTagDialog, setShowDeleteUnusedTagDialog] = useState(false);
   const [unusedTags, setUnusedTags] = useState([]);
   const [selectedUnusedTagIds, setSelectedUnusedTagIds] = useState([]);
-  
-  /* ▼ カテゴリ作成、編集、削除ダイアログ */
-  const [categories, setCategories] = useState([]);
   
   /* ▼ フィルタモーダル */
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -70,9 +73,22 @@ export function useLeftPaneUIState() {
     tagFilter, setTagFilter,
     tagValueLocal,
     setTagValueLocal,
-
     tagSuggestions,
     setTagSuggestions,
+
+    /* ▼ カテゴリ作成、編集、削除ダイアログ */
+    showCreateCategoryDialog, setShowCreateCategoryDialog,
+    showEditCategoryDialog, setShowEditCategoryDialog,
+    showDeleteCategoryDialog, setShowDeleteCategoryDialog,
+    editingCategory, setEditingCategory,
+
+    /* ▼ タグ作成、編集、削除ダイアログ */
+    showCreateTagDialog, setShowCreateTagDialog,
+    showEditTagDialog, setShowEditTagDialog,
+    editingTag, setEditingTag,
+    showDeleteUnusedTagDialog, setShowDeleteUnusedTagDialog,
+    unusedTags, setUnusedTags,
+    selectedUnusedTagIds, setSelectedUnusedTagIds,
 
     /* フィルタモーダル */
     showFilterModal, setShowFilterModal,
@@ -99,16 +115,5 @@ export function useLeftPaneUIState() {
     /* 選択データ削除 */
     showDeleteSelectedModal, setShowDeleteSelectedModal,
     deleteSelectedIds, setDeleteSelectedIds,
-
-    /* ▼ タグ作成、編集、削除ダイアログ */
-    showCreateTagDialog, setShowCreateTagDialog,
-    showEditTagDialog, setShowEditTagDialog,
-    editingTag, setEditingTag,
-    showDeleteUnusedTagDialog, setShowDeleteUnusedTagDialog,
-    unusedTags, setUnusedTags,
-    selectedUnusedTagIds, setSelectedUnusedTagIds,
-
-    /* ▼ カテゴリ作成、編集、削除ダイアログ */
-    categories, setCategories,
   };
 }

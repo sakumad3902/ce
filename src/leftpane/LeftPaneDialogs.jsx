@@ -9,6 +9,9 @@ import MoveSelectedDialog from "./dialogs/MoveSelectedDialog";
 import DeleteSelectedDialog from "./dialogs/DeleteSelectedDialog";
 import CreateTagDialog from "./dialogs/CreateTagDialog";
 import DeleteUnusedTagDialog from "./dialogs/DeleteUnusedTagDialog";
+import CreateCategoryDialog from "./dialogs/CreateCategoryDialog";
+import EditCategoryDialog from "./dialogs/EditCategoryDialog";
+import DeleteCategoryDialog from "./dialogs/DeleteCategoryDialog";
 
 export default function LeftPaneDialogs({ logic }) {
   return (
@@ -47,10 +50,10 @@ export default function LeftPaneDialogs({ logic }) {
       {logic.showEditTagDialog && (
         <CreateTagDialog
           mode="edit"
-          categories={logic.categories}         // カテゴリー
+          categories={logic.categories}   // カテゴリー
           existingTags={logic.allTags}    // UI に渡す辞書
           initialTag={logic.editingTag}   // ← 編集対象
-          onSubmit={logic.updateTag}  // ロジックへ委譲
+          onSubmit={logic.updateTag}      // ロジックへ委譲
           onClose={() => logic.setShowEditTagDialog(false)}
         />
       )}
@@ -63,6 +66,32 @@ export default function LeftPaneDialogs({ logic }) {
           toggleUnusedTagSelection={logic.toggleUnusedTagSelection}
           onSubmit={logic.handleDeleteUnusedTagsOk}
           onClose={() => logic.setShowDeleteUnusedTagDialog(false)}
+        />
+      )}
+
+      {/* ▼ カテゴリ作成 */}
+      {logic.showCreateCategoryDialog && (
+        <CreateCategoryDialog
+          onSubmit={logic.createCategory}
+          onClose={() => logic.setShowCreateCategoryDialog(false)}
+        />
+      )}
+
+      {/* ▼ カテゴリ編集 */}
+      {logic.showEditCategoryDialog && (
+        <EditCategoryDialog
+          initialCategory={logic.editingCategory}
+          onSubmit={logic.updateCategory}
+          onClose={() => logic.setShowEditCategoryDialog(false)}
+        />
+      )}
+
+      {/* ▼ カテゴリ削除 */}
+      {logic.showDeleteCategoryDialog && (
+        <DeleteCategoryDialog
+          category={logic.editingCategory}
+          onSubmit={logic.deleteCategory}
+          onClose={() => logic.setShowDeleteCategoryDialog(false)}
         />
       )}
     </>
