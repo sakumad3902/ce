@@ -1,16 +1,37 @@
+// src/leftpane/dialogs/DeleteCategoryDialog.jsx
+
+import Modal from "../Modal";
+
 export default function DeleteCategoryDialog({
   category,
   onSubmit,
   onClose
 }) {
+  if (!category) return null;  // safety
+
+  const handleOk = () => {
+    onSubmit(category.id);   // useCategoryActions.deleteCategory(id)
+  };
+
   return (
-    <div className="modal">
-      <h3>カテゴリ削除</h3>
+    <Modal
+      title="カテゴリ削除"
+      onCancel={onClose}
+      onOk={handleOk}
+      okText="削除する"
+      cancelText="キャンセル"
+    >
+      <div className="modal-content">
 
-      <p>「{category.name}」を削除しますか？</p>
+        <div style={{ marginBottom: 12 }}>
+          カテゴリ「<strong>{category.name}</strong>」を削除しますか？
+        </div>
 
-      <button onClick={() => onSubmit(category.id)}>削除</button>
-      <button onClick={onClose}>キャンセル</button>
-    </div>
+        <div style={{ color: "#b00", marginBottom: 12 }}>
+          ※ このカテゴリに紐づくタグは「カテゴリなし」になります。
+        </div>
+
+      </div>
+    </Modal>
   );
 }

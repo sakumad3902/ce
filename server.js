@@ -110,6 +110,17 @@ crudCommands.forEach(cmd => {
   app.post(`/${cmd}`, createZmqRoute(cmd));
 });
 
+app.post("/get_series_with_creator", async (req, res) => {
+  const { project_id } = req.body;
+  const reply = await callZmq("get_series_with_creator", { project_id });
+
+  if (reply.status !== "OK") {
+    return res.json({ status: "ERROR", reason: reply.reason || "worker failed" });
+  }
+
+  res.json(reply);
+});
+
 // GET /categories
 app.get("/categories", async (req, res) => {
   const reply = await callZmq("category_list", {});
@@ -131,6 +142,7 @@ app.get("/tags_unused", async (req, res) => {
   res.json(reply.tags);
 });
 
+
 /* ============================================================
    series_update_tags（multipart + JSON parse）
 ============================================================ */
@@ -150,6 +162,18 @@ app.post("/series_update_tags", upload.none(), async (req, res) => {
     user_id
   }));
 });
+
+app.post("/load", async (req, res) => {
+  const { project_id } = req.body;
+  const reply = await callZmq("load", { project_id });
+
+  if (reply.status !== "OK") {
+    return res.json({ status: "ERROR", reason: reply.reason || "worker failed" });
+  }
+
+  res.json(reply);
+});
+
 
 /* ============================================================
    createZmqRoute で十分なルート（仕様が req.body のまま）

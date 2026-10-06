@@ -6,7 +6,7 @@ from models import Category, User, Tag
 
 def handle_category_delete(req, session: Session):
     """
-    単独カテゴリ削除
+    カテゴリ削除（使用中でも削除可能）
     req = {
         "id": 3,
         "user_id": 5
@@ -44,18 +44,14 @@ def handle_category_delete(req, session: Session):
                     raise ValueError("Category not found")
 
                 # ----------------------------------------
-                # 使用中チェック（タグが紐づいている場合は削除不可）
+                # 紐づくタグの category_id を NULL にする
                 # ----------------------------------------
-                linked_tags = (
-                    session.query(Tag)
-                    .filter(Tag.category_id == category_id)
-                    .first()
+                session.query(Tag).filter(Tag.category_id == category_id).update(
+                    {Tag.category_id: None}
                 )
-                if linked_tags:
-                    raise ValueError("Category is used by tags and cannot be deleted")
 
                 # ----------------------------------------
-                # 削除処理（ACID）
+                # カテゴリ削除（ACID）
                 # ----------------------------------------
                 print(f"Deleting category: {cat.id} ({cat.name})", flush=True)
                 session.delete(cat)

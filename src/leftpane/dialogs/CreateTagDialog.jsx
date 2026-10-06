@@ -69,6 +69,7 @@ export default function CreateTagDialog({
       <div className="modal-content">
 
         {/* ▼ タグ名入力 */}
+        <label>タグ名　：</label>
         <input
           value={name}
           onChange={e => setName(e.target.value)}

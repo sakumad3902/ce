@@ -54,7 +54,8 @@ export function useCategoryActions({ api, setCategories, ui, categories }){
     ui.setShowEditCategoryDialog(true);
   }
 
-  function openDeleteCategoryDialog(category) {
+  function openDeleteCategoryDialog(categoryId) {
+    const category = categories.find(c => c.id === categoryId);
     ui.setEditingCategory(category);
     ui.setShowDeleteCategoryDialog(true);
   }

@@ -68,8 +68,11 @@ from routes.login_user import handle as login_user
 # ============================================================
 # DB 初期化
 # ============================================================
-if not os.path.exists("data.db"):
-    init_db()
+# PostgreSQL の場合は init_db を呼ばない
+# SQLite の場合のみ data.db がなければ初期化
+if engine.url.get_backend_name() == "sqlite":
+    if not os.path.exists("data.db"):
+        init_db()
 
 # ============================================================
 # セッションストア
