@@ -245,11 +245,7 @@ const {
       alert("タグ名の更新に失敗しました");
       return;
     }
-
-    setAllTags(prev =>
-      prev.map(t => t.id === id ? { ...t, name: newName } : t)
-    );
-
+    await loadAllTags(api, currentProject, setAllTags, setCategories);
     setShowEditTagDialog(false);
   }
 
