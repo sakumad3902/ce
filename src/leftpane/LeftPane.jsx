@@ -7,6 +7,7 @@ import { DBItem, ProjectItem } from "./LeftPaneItems";
 import { AccordionTitle } from "./LeftPaneAccordion";
 import { Virtuoso } from "react-virtuoso";
 import "./css/LeftPane.css";
+import "./css/Tag.css";
 
 export default function LeftPane({
   headerNames,

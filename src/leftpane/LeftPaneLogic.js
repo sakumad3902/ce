@@ -200,14 +200,33 @@ const {
   };
 
   /* ----------------------------------------
-    10) タグ候補の並び替え
+      10) タグ候補の並び替え（検索＋カテゴリ絞り込み対応）
   ---------------------------------------- */
   const sortedTagSuggestions = useMemo(() => {
     if (!Array.isArray(allTags)) return [];
-    return [...allTags]
-      .sort((a, b) => (b.usage || 0) - (a.usage || 0));
-  }, [allTags]);
 
+    const keyword = (tagFilter ?? "")
+      .trim()
+      .toLowerCase()
+      .normalize("NFKC");
+
+    return allTags
+      .filter(tag => {
+        const name = tag.name.toLowerCase().normalize("NFKC");
+        const matchName = name.includes(keyword);
+
+        const matchCategory =
+          ui.tagCategoryFilter == null ||
+          tag.category_id === Number(ui.tagCategoryFilter);
+
+        return matchName && matchCategory;
+      })
+      .sort((a, b) => (b.usage || 0) - (a.usage || 0));
+  }, [allTags, tagFilter, ui.tagCategoryFilter]);
+
+  /* ----------------------------------------
+      10.5) タグ選択トグル（再定義）
+  ---------------------------------------- */
   const toggleEditTag = (tag) => {
     setEditTags(prev => {
       const exists = prev.some(t => t.id === tag.id);
@@ -370,7 +389,7 @@ const {
     openDeleteUnusedTagDialog,
     handleDeleteUnusedTagsOk,
 
-    /* 10) UI state */
+    /* 11) UI state */
     ...ui
   };
 }

@@ -1,0 +1,203 @@
+/* ============================================
+   tag
+============================================ */
+.tag-mode-box {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tag-mode-btn {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  background: #f7f7f7;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.tag-mode-btn:hover {
+  background: #e5e5e5;
+}
+
+.tag-mode-btn.active {
+  background: #d0f0ff;
+  border-color: #0078d4;
+  font-weight: bold;
+  color: #005fa3;
+}
+
+.tag-suggest-box {
+  width: 360px;     
+  max-height: 90px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-wrap: wrap;         /* 折り返し */
+  gap: 6px;
+  padding: 8px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* スクロールバーをステルス化 */
+.tag-suggest-box::-webkit-scrollbar {
+  width: 4px;  
+}
+
+.tag-suggest-box::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.15);
+  border-radius: 4px;
+}
+
+.tag-suggest-box::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tag-suggest-item {
+  padding: 2px 6px;
+  margin: 2px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tag-suggest-item:hover {
+  background-color: #d9eaff;
+  color: #0056b3;
+}
+
+.tag-suggest-item.selected {
+  background: #0078d4;
+  color: white;
+}
+
+.tag-suggest-item.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.tag-mode-radio {
+  display: flex;
+}
+
+.form-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.tag-selected-item {
+  background: #d0f0ff;
+  border: 1px solid #0078d4;
+  padding: 2px 6px;
+  margin: 2px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tag-delete {
+  margin-left: 2px;
+  cursor: pointer;
+  color: red;
+}
+
+.tag-delete:hover {
+  background-color: darkgray;
+  border-radius: 8px;  
+  opacity: 1;
+}
+
+.autocomplete-box {
+  border: 1px solid #ccc;
+  background: white;
+  margin-top: 4px;
+}
+
+.autocomplete-item {
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.sort-box button {
+  margin-right: 6px;
+}
+
+
+.tag-filter-input {
+  width: 170px;
+  padding: 6px 8px 6px 28px; /* 左に余白（アイコン用） */
+  border: none;
+  border-bottom: 2px solid #ccc;
+  background: #f7f7f7;
+  outline: none;
+  font-size: 14px;
+  position: relative;
+  background-image: url('/icons/search.png');
+  background-repeat: no-repeat;
+  background-position: 6px center;
+  background-size: 16px;
+}
+
+.tag-filter-input:focus {
+  border-bottom-color: #0078d4;
+  background: #fff;
+}
+
+.tag-suggest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.tag-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.tag-action-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #0078d4;
+  cursor: pointer;
+  font-size: 14px;
+  user-select: none;
+}
+
+.tag-action-link:hover {
+  text-decoration: underline;
+}
+
+.tag-action-link.disabled {
+  color: #999;
+  cursor: not-allowed;
+  text-decoration: none;
+  opacity: 0.6;
+}
+
+.tag-action-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+}
+.tag-action-icon:hover {
+  opacity: 1;
+}
+
+.tag-filter-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* 既存の tag-filter-input をそのまま使う */
+.tag-category-select {
+  padding-left: 8px;
+  background-image: none; /* 検索アイコンは不要 */
+}

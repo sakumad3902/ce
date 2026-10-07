@@ -48,7 +48,7 @@ export default function EditDataDialog({ logic }) {
 
         {/* タグ */}
         <div className="form-block">
-          <label>タグ　　：（最大5つ）</label>
+          <label>タグ　　：（最大5つ選択可）</label>
 
           {/* 選択済みタグ */}
           <div className="tag-suggest-box">
@@ -61,7 +61,7 @@ export default function EditDataDialog({ logic }) {
                   <img
                     src="/icons/edit.png"
                     className="leftpane-row-iconbtn"
-                    title="タグ名編集"
+                    title="タグ名変更、カテゴリ設定"
                     onClick={() => {
                       logic.setEditingTag(tag);
                       logic.setShowEditTagDialog(true);
@@ -84,20 +84,69 @@ export default function EditDataDialog({ logic }) {
               ))}
           </div>
 
-          {/* タグ検索 */}
-          <input
-            id="tag-filter"
-            value={logic.tagFilter}
-            onChange={(e) => logic.setTagFilter(e.target.value)}
-            placeholder="タグ検索（部分一致）"
-            className="name-input"
-          />
+          {/* タグ検索 + カテゴリ選択（横並び） */}
+          <div className="tag-filter-row">
+            <input
+              id="tag-filter"
+              value={logic.tagFilter}
+              onChange={(e) => logic.setTagFilter(e.target.value)}
+              placeholder="タグ検索（部分一致）"
+              className="tag-filter-input"
+            />
+
+            <select
+              id="tag-category-filter"
+              value={logic.tagCategoryFilter ?? ""}
+              onChange={(e) => logic.setTagCategoryFilter(e.target.value)}
+              className="tag-filter-input tag-category-select"
+            >
+              <option value="">全カテゴリ</option>
+              {Array.isArray(logic.categories) &&
+                logic.categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+            </select>
+          </div>
+
+          {/* タグ候補ヘッダー（テキストリンク＋アイコン） */}
+          <div className="tag-suggest-header">
+            <span>▼タグ候補</span>
+
+            <div className="tag-actions">
+              {/* タグ追加（disable対応） */}
+              <span
+                className={`tag-action-link ${
+                  Array.isArray(logic.editTags) && logic.editTags.length >= 5
+                    ? "disabled"
+                    : ""
+                }`}
+                onClick={() => {
+                  if (Array.isArray(logic.editTags) && logic.editTags.length >= 5) return;
+                  logic.setShowCreateTagDialog(true);
+                }}
+              >
+                <img src="/icons/add.png" className="tag-action-icon" />
+                タグ追加
+              </span>
+
+              {/* 未使用タグ削除 */}
+              <span
+                className="tag-action-link"
+                onClick={() => logic.openDeleteUnusedTagDialog(true)}
+              >
+                <img src="/icons/trash.png" className="tag-action-icon" />
+                未使用タグ削除
+              </span>
+            </div>
+          </div>
 
           {/* タグ候補 */}
           <div className="tag-suggest-box">
             {Array.isArray(logic.sortedTagSuggestions) &&
               logic.sortedTagSuggestions
-                .filter(tag => tag.name.includes(logic.tagFilter))  
+                .filter(tag => tag.name.includes(logic.tagFilter))
                 .map(tag => {
                   const isSelected = Array.isArray(logic.editTags)
                     ? logic.editTags.some(t => t.id === tag.id)
@@ -116,27 +165,7 @@ export default function EditDataDialog({ logic }) {
                   );
                 })}
           </div>
-
-          <button
-            className={`tag-create-btn ${
-              Array.isArray(logic.editTags) && logic.editTags.length >= 5
-                ? "disabled"
-                : ""
-            }`}
-            disabled={Array.isArray(logic.editTags) && logic.editTags.length >= 5}
-            onClick={() => logic.setShowCreateTagDialog(true)}
-          >
-            ＋タグ作成
-          </button>
-
-          <button
-            className="tag-create-btn"
-            onClick={() => logic.openDeleteUnusedTagDialog(true)}
-          >
-            未使用タグ削除
-          </button>
         </div>
-
       </div>
     </Modal>
   );

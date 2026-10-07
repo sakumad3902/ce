@@ -31,6 +31,8 @@ export function useLeftPaneUIState() {
   const [showDeleteUnusedTagDialog, setShowDeleteUnusedTagDialog] = useState(false);
   const [unusedTags, setUnusedTags] = useState([]);
   const [selectedUnusedTagIds, setSelectedUnusedTagIds] = useState([]);
+  const [tagCategoryFilter, setTagCategoryFilter] = useState(null);
+
   
   /* ▼ フィルタモーダル */
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -89,6 +91,7 @@ export function useLeftPaneUIState() {
     showDeleteUnusedTagDialog, setShowDeleteUnusedTagDialog,
     unusedTags, setUnusedTags,
     selectedUnusedTagIds, setSelectedUnusedTagIds,
+    tagCategoryFilter, setTagCategoryFilter,
 
     /* フィルタモーダル */
     showFilterModal, setShowFilterModal,
