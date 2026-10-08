@@ -48,6 +48,7 @@ from routes.append_clipboard import handle_append_clipboard
 from routes.evaluate_series import evaluate_series
 
 from routes.get_series_with_creator import handle_get_series_with_creator
+from routes.get_series_by_id import handle_get_series_by_id
 from routes.series_update_tags import handle_series_update_tags
 
 from routes.category_list import handle_category_list
@@ -209,6 +210,9 @@ def dispatch_cmd(cmd, req):
 
     elif cmd == "get_series_with_creator":
         return run_series_route(req, handle_get_series_with_creator)
+
+    elif cmd == "get_series_by_id":
+        return run_series_route(req, handle_get_series_by_id)
 
     elif cmd == "series_update_tags":
         return run_series_route(req, handle_series_update_tags)

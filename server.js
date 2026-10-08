@@ -140,6 +140,8 @@ app.post("/get_series_with_creator", async (req, res) => {
   res.json(reply);
 });
 
+app.post("/get_series_by_id", createZmqRoute("get_series_by_id"));
+
 app.post("/series_update_tags", upload.none(), async (req, res) => {
   const { series_id, tagIds, user_id } = req.body;
 

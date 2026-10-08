@@ -66,6 +66,7 @@ const api = {
   exportExcelStart: (payload) => post("export_excel_start", payload),
   exportExcelStatus: (jobId) => get(`export_excel_status?jobId=${jobId}`),
 
+  getSeriesById: (series_id) => post("get_series_by_id", { series_id }),
   getSeriesWithCreator: (project_id) => post("get_series_with_creator", { project_id }),
 
   fetchCategories: () => get("categories"),
@@ -264,6 +265,7 @@ export default function useApi(state) {
 
     updateSeriesTags: api.updateSeriesTags,
     getSeriesWithCreator: api.getSeriesWithCreator, 
+    getSeriesById: api.getSeriesById,
 
     createCategory: api.createCategory,
     updateCategory: api.updateCategory,
