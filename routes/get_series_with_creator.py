@@ -10,10 +10,17 @@ def handle_get_series_with_creator(req, session: Session):
 
     try:
         # ------------------------------------------------------------
-        # Series + User JOIN（論理削除されていない Series）
+        # Series + User JOIN
         # ------------------------------------------------------------
         rows = (
-            session.query(Series, User.username)
+            session.query(
+                Series.id,
+                Series.name,
+                Series.timestamp,
+                Series.comment,
+                Series.created_by,
+                User.username
+            )
             .outerjoin(User, Series.created_by == User.id)
             .filter(
                 Series.project_id == project_id,
@@ -23,33 +30,39 @@ def handle_get_series_with_creator(req, session: Session):
             .all()
         )
 
-        result = []
+        # ------------------------------------------------------------
+        # 全シリーズIDを抽出してタグを一括ロード（N+1防止）
+        # ------------------------------------------------------------
+        series_ids = [r.id for r in rows]
 
-        for series, username in rows:
-
-            # ------------------------------------------------------------
-            # タグ一覧を取得（SeriesTags → Tag）
-            # ------------------------------------------------------------
-            tag_rows = (
-                session.query(Tag)
-                .join(SeriesTags, SeriesTags.c.tag_id == Tag.id)
-                .filter(SeriesTags.c.series_id == series.id)
-                .all()
+        tag_rows = (
+            session.query(
+                SeriesTags.c.series_id,
+                Tag.id,
+                Tag.name
             )
+            .join(Tag, SeriesTags.c.tag_id == Tag.id)
+            .filter(SeriesTags.c.series_id.in_(series_ids))
+            .all()
+        )
 
-            tags = [{"id": t.id, "name": t.name} for t in tag_rows]
+        # series_id → [tags] の辞書にまとめる
+        tag_map = {}
+        for sid, tid, tname in tag_rows:
+            tag_map.setdefault(sid, []).append({"id": tid, "name": tname})
 
-            # ------------------------------------------------------------
-            # Series 情報 + created_by_username + tags を返却
-            # ------------------------------------------------------------
+        # ------------------------------------------------------------
+        # 返却
+        # ------------------------------------------------------------
+        result = []
+        for r in rows:
             result.append({
-                "id": series.id,
-                "name": series.name,
-                "timestamp": series.timestamp,
-                "comment": series.comment,
-                "created_by": series.created_by,
-                "created_by_username": username or "(不明)",
-                "tags": tags,
+                "id": r.id,
+                "name": r.name,
+                "timestamp": r.timestamp,
+                "comment": r.comment,
+                "created_by_username": r.username or "(不明)",
+                "tags": tag_map.get(r.id, [])
             })
 
         return {"status": "OK", "series": result}

@@ -74,7 +74,7 @@ export function useTagLogic({ api, currentProject, ui }) {
   }
 
   /* ----------------------------------------
-     5) タグ編集
+     5) タグ編集（高速版：部分更新）
   ---------------------------------------- */
   async function updateTag({ id, newName, normalized_name, category_id }) {
     const res = await api.updateTag(id, newName, normalized_name, category_id);
@@ -84,7 +84,14 @@ export function useTagLogic({ api, currentProject, ui }) {
       return;
     }
 
-    await loadAllTags(api, currentProject, setAllTags, setCategories);
+    setAllTags(prev =>
+      prev.map(t =>
+      t.id === id
+        ? { ...t, name: newName, normalized_name, category_id }
+        : t
+      )
+    );
+
     ui.setShowEditTagDialog(false);
   }
 
@@ -106,6 +113,7 @@ export function useTagLogic({ api, currentProject, ui }) {
     );
   }
 
+  
   async function handleDeleteUnusedTagsOk() {
     const ids = ui.selectedUnusedTagIds;
 
@@ -119,7 +127,7 @@ export function useTagLogic({ api, currentProject, ui }) {
     if (res.status === "OK") {
       alert(`${res.deleted_count} 件の未使用タグを削除しました`);
 
-      await loadAllTags(api, currentProject, setAllTags, setCategories);
+      setAllTags(prev => prev.filter(t => !ids.includes(t.id)));
 
       ui.setShowDeleteUnusedTagDialog(false);
       ui.setSelectedUnusedTagIds([]);
