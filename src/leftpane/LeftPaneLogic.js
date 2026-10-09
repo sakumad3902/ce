@@ -1,9 +1,11 @@
 // src/leftpane/LeftPaneLogic.js
 
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useLeftPaneUIState } from "./useLeftPaneUIState";
 import { useTagLogic } from "./useTagLogic";
 import { useSeriesLogic } from "./useSeriesLogic";
 import { useProjectLogic } from "./useProjectLogic";
+import { buildMenuLogic } from "./menuLogic";
 
 export function useLeftPaneLogic({
   loadHeader,
@@ -70,6 +72,15 @@ export function useLeftPaneLogic({
   });
 
   /* ----------------------------------------
+     4) メニュー、ref
+  ---------------------------------------- */
+  const dbListRef = useRef(null);
+  const selectedListRef = useRef(null);
+  const menuRef = useRef(null);
+  const projectMenuRef = useRef(null);
+  const menuLogic = buildMenuLogic({ ui, menuRef });
+
+  /* ----------------------------------------
      返却（LeftPaneLogic は統合ハブとして機能）
   ---------------------------------------- */
   return {
@@ -82,7 +93,15 @@ export function useLeftPaneLogic({
     /* 3) プロジェクト系 */
     ...projectLogic,
 
-    /* 4) UI state */
-    ...ui
+    /* 4) メニュー */
+    ...menuLogic,
+
+    /* 5) UI state */
+    ...ui,
+
+    dbListRef,
+    selectedListRef,
+    menuRef,
+    projectMenuRef,
   };
 }
