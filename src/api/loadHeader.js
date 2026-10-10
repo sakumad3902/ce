@@ -7,26 +7,17 @@ export async function loadHeaderApi(project_id) {
   const metaSeries = metaData.series || [];
   const metaMap = new Map(metaSeries.map(s => [s.id, s]));
 
-  // ② raw bytes の波形データ
-  const res = await fetch(`${API}/load_raw`, {
+  // ② raw bytes の波形データ（高速版）
+  const res = await fetch(`${API}/load_raw_fast`, {
     method: "POST",
     body: JSON.stringify({ project_id })
   });
 
-  // ---- metaBase64 と rawBytes を body から分離する ----
   const buf = await res.arrayBuffer();
-  const all = new Uint8Array(buf);
+  const rawBytes = new Uint8Array(buf);  
 
-  // metaBase64 は body の先頭行（改行まで）
-  let i = 0;
-  while (i < all.length && all[i] !== 10) i++; // 10 = '\n'
-
-  const metaBase64 = new TextDecoder().decode(all.slice(0, i));
-  const rawBytes = all.slice(i + 1);
-
-  const metaJson = atob(metaBase64);
-  const meta = JSON.parse(metaJson);
-  const lengths = meta.lengths;
+  // meta は get_series_with_creator から取得済み
+  const lengths = metaData.lengths;   
 
   const f32 = new Float32Array(rawBytes.buffer);
 

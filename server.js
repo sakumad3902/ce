@@ -6,6 +6,7 @@ const zmqClient = require("./zmq_client");
 const zmq = zmqClient();
 const multer = require("multer");
 const upload = multer();
+const { loadChunkParallel } = require("./loadChunkParallel");
 
 const app = express();
 
@@ -179,6 +180,32 @@ app.post("/load_raw", async (req, res) => {
 
     res.setHeader("Content-Type", "application/octet-stream");
     res.send(out);
+  });
+});
+
+/* ============================================================
+   高速ロード（chunk 8分割）
+============================================================ */
+app.post("/load_raw_fast", async (req, res) => {
+  let body = "";
+
+  req.on("data", chunk => {
+    body += chunk;
+  });
+
+  req.on("end", async () => {
+    const { project_id } = JSON.parse(body);
+
+    try {
+      const packed = await loadChunkParallel(project_id);
+
+      res.setHeader("Content-Type", "application/octet-stream");
+      res.send(packed);
+
+    } catch (e) {
+      console.error("load_raw_fast error:", e);
+      res.json({ status: "ERROR", reason: e.message });
+    }
   });
 });
 

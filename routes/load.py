@@ -1,4 +1,4 @@
-# routes/load.py
+# routes/load.py（完全堅牢版）
 
 import numpy as np
 import base64
@@ -7,7 +7,7 @@ from models import Series
 
 def handle_load(req, session: Session):
     """
-    空の Series があっても落ちない堅牢版。
+    空の Series があっても絶対に落ちない堅牢版。
     """
 
     project_id = req.get("project_id")
@@ -47,7 +47,7 @@ def handle_load(req, session: Session):
         packed_list = []
 
         # ------------------------------------------------------------
-        # 空の Series を完全に除外
+        # 空の Series を完全に除外（堅牢化）
         # ------------------------------------------------------------
         valid_rows = []
         for row in rows:
@@ -93,7 +93,7 @@ def handle_load(req, session: Session):
             })
 
         # ------------------------------------------------------------
-        # packed
+        # packed（高速描画用）
         # ------------------------------------------------------------
         packed_arr = np.asarray(packed_list, dtype=np.float32)
         packed_b64 = base64.b64encode(packed_arr.tobytes()).decode("utf8")
