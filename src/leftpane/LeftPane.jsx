@@ -92,9 +92,14 @@ export default function LeftPane({
   } = logic;
 
   /* ----------------------------------------
-     初回ロード
+     初回ロード ※本番環境も開発環境も1回だけロード
   ---------------------------------------- */
+  const didInitRef = useRef(false);
+
   useEffect(() => {
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+
     reloadProjects();
   }, []);
 
@@ -104,11 +109,13 @@ export default function LeftPane({
   useEffect(() => {
     if (!selectedProject) {
       setProject(null);
-      loadHeader({ resetSelection: true });
       return;
     }
+
     setProject(selectedProject);
+
     loadHeader({ resetSelection: false });
+
   }, [selectedProject]);
 
   useEffect(() => {
@@ -122,9 +129,6 @@ export default function LeftPane({
     if (!selectedProject) return;
     const rect = e.currentTarget.getBoundingClientRect();
     e.stopPropagation();
-
-    // 選択解除せず loadHeader → Tag 紐づけ更新
-    await loadHeader({ resetSelection: false });
 
     setOpenDB(true);
     setFilterModalPos({

@@ -9,14 +9,8 @@ let queue = Promise.resolve();
 function createSocket() {
   if (!sock) {
     sock = new zmq.Request();
-
-    try {
-      sock.connect("tcp://127.0.0.1:5555");
-      console.log("ZMQ connected → tcp://127.0.0.1:5555");
-    } catch (e) {
-      console.error("ZMQ connection error:", e);
-      throw e;
-    }
+    sock.connect("tcp://127.0.0.1:5555");
+    console.log("ZMQ connected → tcp://127.0.0.1:5555");
   }
   return sock;
 }
@@ -37,7 +31,7 @@ function resetSocket() {
 }
 
 /**
- * JSON送受信
+ * JSON送受信（従来どおり）
  */
 async function sendJson(obj, timeoutMs = 30000) {
   queue = queue.then(async () => {
@@ -45,23 +39,14 @@ async function sendJson(obj, timeoutMs = 30000) {
 
     try {
       const jsonStr = JSON.stringify(obj);
-      const jsonBuf = Buffer.from(jsonStr, "utf8");  //  UTF-8 明示
+      await socket.send(Buffer.from(jsonStr, "utf8"));
 
-      console.log("================================");
-      console.log("ZMQ SEND(JSON)");
-      console.log(jsonStr);
+      const frames = await receiveWithTimeout(socket, timeoutMs);
 
-      await socket.send(jsonBuf);
-
-      console.log("ZMQ WAIT REPLY(JSON)");
-
-      const replyBuffer = await receiveWithTimeout(socket, timeoutMs);
-      const replyText = replyBuffer.toString("utf8"); //  UTF-8 明示
-
-      console.log("ZMQ REPLY(JSON)");
-      console.log(replyText);
-
+      // JSON は 1 フレーム
+      const replyText = frames[0].toString("utf8");
       return JSON.parse(replyText);
+
     } catch (e) {
       console.error("ZMQ sendJson error:", e);
       resetSocket();
@@ -73,10 +58,7 @@ async function sendJson(obj, timeoutMs = 30000) {
 }
 
 /**
- * multipart送受信
- * cmd: string
- * meta: object (JSON)
- * fileBuffer: Buffer (binary)
+ * multipart送信（受信は receiveWithTimeout が行う）
  */
 async function sendMultipart(cmd, meta = {}, fileBuffer = Buffer.alloc(0), timeoutMs = 20000) {
   queue = queue.then(async () => {
@@ -84,28 +66,18 @@ async function sendMultipart(cmd, meta = {}, fileBuffer = Buffer.alloc(0), timeo
 
     try {
       const frames = [
-        Buffer.from(cmd, "utf8"),                     // frame 0: cmd
-        Buffer.from(JSON.stringify(meta), "utf8"),    // frame 1: JSON meta
-        fileBuffer                                   // frame 2: バイナリ
+        Buffer.from(cmd, "utf8"),
+        Buffer.from(JSON.stringify(meta), "utf8"),
+        fileBuffer
       ];
-
-      console.log("================================");
-      console.log("ZMQ SEND(MULTIPART)");
-      console.log("cmd:", cmd);
-      console.log("meta:", meta);
-      console.log("binary bytes:", fileBuffer.length);
 
       await socket.send(frames);
 
-      console.log("ZMQ WAIT REPLY(MULTIPART)");
-
       const replyFrames = await receiveWithTimeout(socket, timeoutMs);
-      const replyText = replyFrames.toString("utf8"); //  UTF-8 明示
 
-      console.log("ZMQ REPLY(MULTIPART)");
-      console.log(replyText);
+      // replyFrames は [frame0, frame1, frame2] の可能性がある
+      return replyFrames;
 
-      return JSON.parse(replyText);
     } catch (e) {
       console.error("ZMQ sendMultipart error:", e);
       resetSocket();
@@ -117,7 +89,7 @@ async function sendMultipart(cmd, meta = {}, fileBuffer = Buffer.alloc(0), timeo
 }
 
 /**
- * タイムアウト付き受信（既存）
+ * タイムアウト付き受信（multipart 対応）
  */
 function receiveWithTimeout(socket, timeoutMs) {
   return new Promise((resolve, reject) => {
@@ -139,8 +111,9 @@ function receiveWithTimeout(socket, timeoutMs) {
         return;
       }
 
-      // JSON も multipart も最終的に JSON 1フレームで返す前提
-      resolve(frames[0]);
+      // multipart の場合は frames をそのまま返す
+      resolve(frames);
+
     }).catch((err) => {
       if (finished) return;
       finished = true;

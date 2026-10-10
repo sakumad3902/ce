@@ -323,7 +323,26 @@ while True:
             continue
 
         result = dispatch_cmd(cmd, req)
-        sock.send_json(result)
+
+        if cmd == "load":
+            import base64
+
+            # packed(b64) → raw bytes
+            raw_bytes = base64.b64decode(result.get("packed", ""))
+
+            meta = {
+                "status": result.get("status"),
+                "series": result.get("series"),
+                "lengths": result.get("lengths"),
+            }
+
+            sock.send_multipart([
+                b"load",
+                json.dumps(meta).encode("utf8"),
+                raw_bytes,
+            ])
+        else:
+            sock.send_json(result)
 
     except Exception as e:
         traceback.print_exc()

@@ -161,17 +161,24 @@ app.post("/series_update_tags", upload.none(), async (req, res) => {
 
 
 /* ============================================================
-   補正処理 / ロード
+   ロード / 補正処理
 ============================================================ */
 app.post("/load", async (req, res) => {
   const { project_id } = req.body;
-  const reply = await callZmq("load", { project_id });
 
-  if (reply.status !== "OK") {
-    return res.json({ status: "ERROR", reason: reply.reason || "worker failed" });
-  }
+  const frames = await zmq.sendMultipart("load", { project_id });
 
-  res.json(reply);
+  // frames = [frame0, frame1, frame2]
+  const cmd = frames[0].toString();
+  const meta = JSON.parse(frames[1].toString());
+  const raw = frames[2]; // Uint8Array
+
+  res.json({
+    status: meta.status,
+    series: meta.series,
+    lengths: meta.lengths,
+    raw: Buffer.from(raw).toString("base64") // React で扱いやすい
+  });
 });
 
 app.post("/apply_correction", async (req, res) => {

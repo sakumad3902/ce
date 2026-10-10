@@ -68,8 +68,7 @@ export function useSeriesLogic({
   });
 
   /* ----------------------------------------
-     5) 編集モーダル OK（シリーズ編集）
-        ★ loadHeader → 部分更新に置き換え
+     5) 編集モーダル OK（シリーズ編集）　※部分更新
   ---------------------------------------- */
   const handleEditOk = async () => {
     const h = ui.editTarget;
@@ -102,8 +101,16 @@ export function useSeriesLogic({
         )
       );
     } else {
-      console.warn("部分更新失敗 → fallback loadHeader");
-      await loadHeader({ resetSelection: false });
+      console.warn("部分更新失敗 → fallback getSeriesById");
+      const fallback = await api.getSeriesById(h.id);
+
+      if (fallback?.status === "OK" && fallback.series) {
+        setHeaderNames(prev =>
+          prev.map(s =>
+            s.id === fallback.series.id ? fallback.series : s
+          )
+        );
+      }
     }
 
     ui.setShowEditModal(false);

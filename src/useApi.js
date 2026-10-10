@@ -52,7 +52,6 @@ const api = {
   renameProject: (project_id, newName) => post("rename_project", { project_id, newName, user_id: localStorage.getItem("user_id")}),
   deleteProject: (project_id) => post("delete_project", { project_id, user_id: localStorage.getItem("user_id")}),
 
-  loadHeader: (project_id) => post("load", { project_id }),
   applyCorrection: (params) => post("apply_correction", params),
 
   rename: (id, newName, project_id) => post("rename", { id, newName, project_id }),
