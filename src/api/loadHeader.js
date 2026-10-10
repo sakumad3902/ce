@@ -1,23 +1,34 @@
-import { post } from "./http";
+import { post, API } from "./http";
 
 export async function loadHeaderApi(project_id) {
 
   // ① Series メタ情報（tags入り）
   const metaData = await post("get_series_with_creator", { project_id });
-  const metaSeries = Array.isArray(metaData?.series)
-    ? metaData.series.map(s => ({ ...s, project_id }))
-    : [];
-
+  const metaSeries = metaData.series || [];
   const metaMap = new Map(metaSeries.map(s => [s.id, s]));
 
-  // ② 波形データ（packed float32）
-  const rawData = await post("load", { project_id });
+  // ② raw bytes の波形データ
+  const res = await fetch(`${API}/load_raw`, {
+    method: "POST",
+    body: JSON.stringify({ project_id })
+  });
 
-  // rawData.raw は base64
-  const rawBytes = Uint8Array.from(atob(rawData.raw), c => c.charCodeAt(0));
+  // ---- metaBase64 と rawBytes を body から分離する ----
+  const buf = await res.arrayBuffer();
+  const all = new Uint8Array(buf);
+
+  // metaBase64 は body の先頭行（改行まで）
+  let i = 0;
+  while (i < all.length && all[i] !== 10) i++; // 10 = '\n'
+
+  const metaBase64 = new TextDecoder().decode(all.slice(0, i));
+  const rawBytes = all.slice(i + 1);
+
+  const metaJson = atob(metaBase64);
+  const meta = JSON.parse(metaJson);
+  const lengths = meta.lengths;
+
   const f32 = new Float32Array(rawBytes.buffer);
-
-  const lengths = rawData.lengths;
 
   // ③ packed を x,y に展開
   let offset = 0;
@@ -31,10 +42,10 @@ export async function loadHeaderApi(project_id) {
 
     offset += n * 2;
 
-    const meta = metaMap.get(rawData.series[i].id) || {};
+    const meta = metaMap.get(metaSeries[i].id) || {};
 
     waveSeries.push({
-      id: rawData.series[i].id,
+      id: meta.id,
       name: meta.name,
       timestamp: meta.timestamp,
       comment: meta.comment,
@@ -45,11 +56,9 @@ export async function loadHeaderApi(project_id) {
     });
   }
 
-  // ④ tagSet を付ける
-  const merged = waveSeries.map(ws => {
-    ws.tagSet = new Set((ws.tags || []).map(t => t.id));
-    return ws;
-  });
-
-  return merged;
+  // ④ tagSet
+  return waveSeries.map(ws => ({
+    ...ws,
+    tagSet: new Set(ws.tags.map(t => t.id))
+  }));
 }

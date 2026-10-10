@@ -7,12 +7,7 @@ from models import Series
 
 def handle_load(req, session: Session):
     """
-    req = {
-        "project_id": 1
-    }
-
-    指定 project_id の Series を読み込む（BLOB → float32）
-    UI が必要とする series[], packed, lengths を返す
+    空の Series があっても落ちない堅牢版。
     """
 
     project_id = req.get("project_id")
@@ -27,7 +22,7 @@ def handle_load(req, session: Session):
 
     try:
         # ------------------------------------------------------------
-        # 該当 project_id の Series を取得（論理削除されていないもの）
+        # DB から Series を取得
         # ------------------------------------------------------------
         rows = (
             session.query(Series)
@@ -52,15 +47,29 @@ def handle_load(req, session: Session):
         packed_list = []
 
         # ------------------------------------------------------------
-        # BLOB → float32 array 復元
+        # 空の Series を完全に除外
         # ------------------------------------------------------------
+        valid_rows = []
         for row in rows:
-            x_arr = np.frombuffer(row.x_blob, dtype=np.float32)
-            y_arr = np.frombuffer(row.y_blob, dtype=np.float32)
+            x_arr = np.frombuffer(row.x_blob or b"", dtype=np.float32)
+            y_arr = np.frombuffer(row.y_blob or b"", dtype=np.float32)
 
-            if x_arr.size == 0 or y_arr.size == 0:
-                continue
+            if x_arr.size > 0 and y_arr.size > 0:
+                valid_rows.append((row, x_arr, y_arr))
 
+        # valid_rows が空でも落ちない
+        if not valid_rows:
+            return {
+                "status": "OK",
+                "series": [],
+                "packed": "",
+                "lengths": []
+            }
+
+        # ------------------------------------------------------------
+        # packed と series を構築
+        # ------------------------------------------------------------
+        for row, x_arr, y_arr in valid_rows:
             nlen = len(x_arr)
             lengths.append(nlen)
 
@@ -68,7 +77,7 @@ def handle_load(req, session: Session):
             packed_list.extend(x_arr.tolist())
             packed_list.extend(y_arr.tolist())
 
-            # b64（UI が使う）
+            # b64（互換性維持）
             buf = np.zeros(nlen * 2, dtype=np.float32)
             buf[:nlen] = x_arr
             buf[nlen:] = y_arr
@@ -84,7 +93,7 @@ def handle_load(req, session: Session):
             })
 
         # ------------------------------------------------------------
-        # packed（高速描画用）
+        # packed
         # ------------------------------------------------------------
         packed_arr = np.asarray(packed_list, dtype=np.float32)
         packed_b64 = base64.b64encode(packed_arr.tobytes()).decode("utf8")

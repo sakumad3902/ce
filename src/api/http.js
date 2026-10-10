@@ -1,5 +1,5 @@
 // src/api/http.js
-const API = import.meta.env.VITE_API_URL;
+export const API = import.meta.env.VITE_API_URL;
 
 export async function post(path, body) {
   const res = await fetch(`${API}/${path}`, {

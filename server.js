@@ -1,5 +1,4 @@
 // server.js
-
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -9,7 +8,11 @@ const multer = require("multer");
 const upload = multer();
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  exposedHeaders: ["X-Meta"]
+}));
+
 app.use(express.json({ limit: "50mb" }));
 app.use("/downloads", express.static(path.join(__dirname, "downloads")));
 
@@ -27,7 +30,6 @@ async function callZmq(cmd, payload = {}) {
 
 const createZmqRoute = cmd => async (req, res) =>
   res.json(await callZmq(cmd, req.body));
-
 
 /* ============================================================
    認証系
@@ -47,19 +49,13 @@ app.post("/session_check", async (req, res) => {
   res.json(await callZmq("session_check", { token }));
 });
 
-
 /* ============================================================
    プロジェクト管理
 ============================================================ */
 app.get("/projects", async (req, res) => {
-  try {
-    const reply = await callZmq("projects");
-    if (reply.status !== "OK") return res.json([]);
-    res.json(reply.projects);
-  } catch (err) {
-    console.error("Failed to load projects:", err);
-    res.status(500).json({ error: "Failed to load projects" });
-  }
+  const reply = await callZmq("projects");
+  if (reply.status !== "OK") return res.json([]);
+  res.json(reply.projects);
 });
 
 app.post("/add_project", async (req, res) => {
@@ -86,9 +82,8 @@ app.post("/delete_project", async (req, res) => {
   res.json(await callZmq("delete_project", { project_id, user_id }));
 });
 
-
 /* ============================================================
-   Category / Tag CRUD（createZmqRoute）
+   Category / Tag CRUD
 ============================================================ */
 const crudCommands = [
   "category_create",
@@ -102,7 +97,6 @@ const crudCommands = [
 crudCommands.forEach(cmd => {
   app.post(`/${cmd}`, createZmqRoute(cmd));
 });
-
 
 /* ============================================================
    タグ・カテゴリ一覧
@@ -124,7 +118,6 @@ app.get("/tags_unused", async (req, res) => {
   if (reply.status !== "OK") return res.json([]);
   res.json(reply.tags);
 });
-
 
 /* ============================================================
    シリーズ関連
@@ -159,28 +152,39 @@ app.post("/series_update_tags", upload.none(), async (req, res) => {
   }));
 });
 
-
 /* ============================================================
-   ロード / 補正処理
+   ロード（raw bytes）
 ============================================================ */
-app.post("/load", async (req, res) => {
-  const { project_id } = req.body;
+app.post("/load_raw", async (req, res) => {
+  let body = "";
 
-  const frames = await zmq.sendMultipart("load", { project_id });
+  req.on("data", chunk => {
+    body += chunk;
+  });
 
-  // frames = [frame0, frame1, frame2]
-  const cmd = frames[0].toString();
-  const meta = JSON.parse(frames[1].toString());
-  const raw = frames[2]; // Uint8Array
+  req.on("end", async () => {
+    const { project_id } = JSON.parse(body);
 
-  res.json({
-    status: meta.status,
-    series: meta.series,
-    lengths: meta.lengths,
-    raw: Buffer.from(raw).toString("base64") // React で扱いやすい
+    const frames = await zmq.sendMultipart("load", { project_id });
+
+    const meta = JSON.parse(frames[1].toString());
+    const raw = frames[2]; // Uint8Array
+
+    // meta をヘッダではなく body の先頭に付ける
+    const metaJson = JSON.stringify(meta);
+    const metaBase64 = Buffer.from(metaJson, "utf8").toString("base64");
+
+    const metaBuf = Buffer.from(metaBase64 + "\n", "utf8");
+    const out = Buffer.concat([metaBuf, Buffer.from(raw)]);
+
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.send(out);
   });
 });
 
+/* ============================================================
+   補正処理
+============================================================ */
 app.post("/apply_correction", async (req, res) => {
   const reply = await callZmq("apply_correction", req.body);
 
@@ -191,9 +195,8 @@ app.post("/apply_correction", async (req, res) => {
   res.json(reply);
 });
 
-
 /* ============================================================
-   その他の ZMQ ルート（createZmqRoute）
+   その他の ZMQ ルート
 ============================================================ */
 [
   "rename",
@@ -214,7 +217,6 @@ app.get("/export_excel_status", async (req, res) => {
   res.json(await callZmq("export_excel_status", { jobId }));
 });
 
-
 /* ============================================================
    Excel バイナリ返却
 ============================================================ */
@@ -229,7 +231,6 @@ app.post("/evaluate_series_excel", async (req, res) => {
 
   res.send(excelBuffer);
 });
-
 
 /* ============================================================
    Parquet インポート／エクスポート
@@ -254,7 +255,6 @@ app.post("/import_parquet_preview", upload.single("file"), parquetRoute("import_
 app.post("/import_parquet_apply", upload.single("file"), parquetRoute("import_parquet_apply"));
 app.post("/export_parquet_preview", upload.none(), parquetRoute("export_parquet_preview"));
 app.post("/export_parquet_apply", upload.none(), parquetRoute("export_parquet_apply"));
-
 
 /* ============================================================
    起動
