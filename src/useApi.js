@@ -161,16 +161,20 @@ export default function useApi(state) {
 
     const merged = await loadHeaderApi(project_id);
 
-    // UI 反映（ここは useApi に残す）
+    // UI 反映
     setHeaderNames(merged);
 
     setOriginalSeries(prev => {
-      const map = new Map(prev.map(s => [`${s.project_id}-${s.id}`, s]));
-      merged.forEach(s => {
-        const key = `${project_id}-${s.id}`;
-        map.set(key, { ...map.get(key), ...s });
-      });
-      return [...map.values()];
+      const updated = [...prev];
+      for (const s of merged) {
+        const idx = updated.findIndex(x => x.id === s.id);
+        if (idx >= 0) {
+          updated[idx] = { ...updated[idx], ...s }; // 差分更新
+        } else {
+          updated.push(s);
+        }
+      }
+      return updated;
     });
 
     if (resetSelection) {
